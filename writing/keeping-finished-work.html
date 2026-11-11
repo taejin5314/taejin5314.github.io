@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A third of my agent’s time was rework. I did not add more agents.</title>
+    <meta name="description" content="Where the time went in a session of an autonomous coding agent, the three options I weighed, and what happened after I chose to carry finished work forward." />
+    <link rel="stylesheet" href="../page.css" />
+  </head>
+  <body>
+    <main>
+      <nav class="site">
+        <a class="me" href="../index.html">Taejin Jung</a>
+        <a href="../index.html#work">Work</a>
+        <a href="../index.html#writing">Writing</a>
+        <a href="../resume.html">Résumé</a>
+      </nav>
+
+      <article>
+        <h1>A third of my agent’s time was rework. I did not add more agents.</h1>
+        <p class="lede">
+          The obvious way to make an autonomous coding agent faster is to run more of them. I measured a session first, and the measurement
+          pointed somewhere else.
+        </p>
+        <p class="dated">12 November 2026 · Taejin Jung</p>
+
+        <h2>The rule that makes it safe</h2>
+        <p>
+          My agent picks an approved task, writes the change, runs the checks, has a different model review it, and merges. Nobody watches
+          it. What makes that acceptable is one strict rule at the end: it may push only the exact merge commit it verified, and only if
+          <code>main</code> is still the exact commit it verified against. The push carries a lease on that commit, so if anything else has
+          landed, the push fails.
+        </p>
+        <p>I would not give that rule up. It is the reason I can let the agent merge at all.</p>
+
+        <h2>Where the time went</h2>
+        <p>
+          On 9 and 10 October I measured fifteen runs in a row from the agent’s own logs: ten merges in 258 minutes. Then I sorted the
+          minutes by what they were spent on.
+        </p>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr><th>Spent on</th><th class="n">Share of the session</th></tr>
+            </thead>
+            <tbody>
+              <tr class="pick"><td>Redoing work that had already passed review</td><td class="n">32%</td></tr>
+              <tr><td>Writing the change</td><td class="n">27%</td></tr>
+              <tr><td>Running the full test suite twice per run</td><td class="n">about 24%</td></tr>
+              <tr><td>Choosing the next task</td><td class="n">about 24%</td></tr>
+              <tr><td>Review</td><td class="n">17%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="source">From the agent’s monitor, event and report logs. The categories overlap, so the column does not add up to 100.</p>
+        <p>
+          The top row was the surprise. In four of the fifteen runs, the agent finished, passed every check, passed review, and then found
+          that <code>main</code> had moved, because I had merged a pull request of my own in the meantime. The rule did its job and refused
+          the push. The run then started again from nothing: a fresh baseline, a fresh choice of task, a fresh implementation. In all four,
+          the files the agent had touched and the files I had touched did not overlap.
+        </p>
+
+        <h2>Three options</h2>
+        <p><strong>Run more agents in parallel.</strong> This is what I had planned to do. The numbers argued against it. Every agent draws on the same usage limit, and one loop already used about 14% of a five-hour window each hour. Two loops would hit the limit in about three hours, for an estimated 1.2 times the output. And with a lease on the exact base commit, two changes built on the same base cannot both merge anyway.</p>
+        <p><strong>Leave it as it was.</strong> Safe, but it kept redoing the work most likely to be right: work that had already passed every gate.</p>
+        <p><strong>Carry the finished change forward.</strong> Merge queues keep an author’s work when the target moves and test the combination again. Gerrit carries a review across a rebase only when the rebase is trivial. Both are the same idea: the work is still good, so prove it against the new base instead of throwing it away.</p>
+
+        <h2>What I built</h2>
+        <p>The third option, with the rule untouched.</p>
+        <ul>
+          <li>When <code>main</code> has moved, the harness rebuilds the change on the new base with a three-way merge. A conflict ends the run, as before.</li>
+          <li>Every check runs again on the rebuilt change, in a fresh export. A failure ends the run.</li>
+          <li>The review carries over only if the patch itself is unchanged, compared by a stable patch ID. If it differs, the reviewer reads it again.</li>
+          <li>The push still carries the same lease. Nothing about what is allowed to land has changed.</li>
+        </ul>
+        <p>The speed comes from keeping good work, with the same gates.</p>
+
+        <h2>A month later</h2>
+        <dl class="figures">
+          <div><dt>96</dt><dd>finished changes carried forward instead of redone</dd></div>
+          <div><dt>96 of 96</dt><dd>kept their review, because the patch was unchanged</dd></div>
+          <div><dt>90 of 91</dt><dd>runs with a carried-forward change went on to merge</dd></div>
+        </dl>
+        <p class="source">From the agent’s event log, 10 October to 10 November 2026.</p>
+        <p>
+          Every one of the 96 had an identical patch, which matches what the first four showed: when my work and the agent’s work collide in
+          time, they almost never collide in content.
+        </p>
+
+        <h2>What I took from it</h2>
+        <p>
+          Measure where the time goes before choosing how to go faster. I had a plan, the plan was more agents, and fifteen runs of data
+          showed that the plan would have bought very little while the real cost sat in a place I had not looked. The fix was also the
+          smaller change: no new agents, no looser rule, one new path through code that already existed.
+        </p>
+        <p class="source">
+          Decision records: <a href="https://github.com/taejin5314/claude-codex-loop-engineering/blob/main/docs/decisions/0126-loop-speed-without-more-agents.md">0126, speed by wasting less</a> and
+          <a href="https://github.com/taejin5314/claude-codex-loop-engineering/blob/main/docs/decisions/0025-atomic-verified-merge-push.md">0025, the merge rule</a>.
+        </p>
+      </article>
+
+      <p class="next">
+        <a href="../agent.html?open=decision">Replay a run where this happens</a> ·
+        Next: <a href="measuring-the-reviewer.html">I measured my agent’s code reviewer before I trusted it</a>
+      </p>
+    </main>
+  </body>
+</html>
