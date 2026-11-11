@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>I measured my agent’s code reviewer before I trusted it</title>
+    <meta name="description" content="A small evaluation of the reviewer inside an autonomous coding agent: 26 known defects, four reviewers, a rule written down first, and what the noise taught me." />
+    <link rel="stylesheet" href="../page.css" />
+  </head>
+  <body>
+    <main>
+      <nav class="site">
+        <a class="me" href="../index.html">Taejin Jung</a>
+        <a href="../index.html#work">Work</a>
+        <a href="../index.html#writing">Writing</a>
+        <a href="../resume.html">Résumé</a>
+      </nav>
+
+      <article>
+        <h1>I measured my agent’s code reviewer before I trusted it</h1>
+        <p class="lede">
+          In an agent that merges its own work, the reviewer decides what lands. I wanted to know how good mine was, and whether a different
+          method would be better, before changing anything.
+        </p>
+        <p class="dated">12 November 2026 · Taejin Jung</p>
+
+        <h2>The question</h2>
+        <p>
+          My agent’s changes are reviewed by a different model from the one that wrote them. If the review raises an issue, the change goes
+          back to be fixed, for up to three rounds. That had been running for weeks and looked healthy: in fourteen days, 388 runs were
+          reviewed and 71% passed on the first review.
+        </p>
+        <p>
+          A pass rate does not say whether the reviewer finds what is there. So I asked a narrower question: on the same code, does another
+          method find more real defects than the one I have?
+        </p>
+
+        <h2>The rule came first</h2>
+        <p>Before running anything, I wrote down what would count as better:</p>
+        <ul>
+          <li>The new method must find at least 10 percentage points more real defects than the current loop.</li>
+          <li>It may add at most one false finding per run, because every false finding costs a fix round.</li>
+          <li>Any new finding that decides the result is read by hand.</li>
+        </ul>
+        <p>Writing the rule first matters. With the numbers already in front of me, almost any result could have been argued into a win.</p>
+
+        <h2>The setup</h2>
+        <ul>
+          <li><strong>Twelve real runs</strong>, one per task: six where a later round had raised an issue, and six that merged after one review.</li>
+          <li><strong>The same code for everyone.</strong> Each reviewer saw the first candidate of each run, read-only.</li>
+          <li><strong>Four reviewers</strong> with the same prompt: Claude twice, and two Codex models. 48 runs, none failed.</li>
+          <li><strong>A blind judge.</strong> One session per sample received every finding shuffled, with no source named, read the code at that commit, and marked each finding real or not. I then read its list by hand and removed two of 28, leaving 26 defects.</li>
+        </ul>
+
+        <h2>The result</h2>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr><th>Method</th><th class="n">Real defects found</th><th class="n">Against the loop</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>The loop as it was, up to three rounds</td><td class="n">11 of 26</td><td class="n"></td></tr>
+              <tr><td>First round + Claude again, run a</td><td class="n">13 of 26</td><td class="n">+8 points</td></tr>
+              <tr><td>First round + Claude again, run b</td><td class="n">18 of 26</td><td class="n">+27 points</td></tr>
+              <tr class="pick"><td>First round + a second reviewer (Codex)</td><td class="n">15 of 26</td><td class="n">+16 points</td></tr>
+              <tr><td>First round + both</td><td class="n">18 of 26</td><td class="n">+27 points</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="source">Twelve samples, 26 known defects. Most of the defects are small: a missing test a task asked for, a small visual miss.</p>
+        <p>
+          A second independent look on the first round passed the rule. I adopted the Codex reviewer for it: it tied on defects found, had
+          the fewest false findings of any reviewer (0.08 per run), and runs on a different subscription from the one that limits the loop.
+          It has since reviewed 239 first-round candidates in the live loop.
+        </p>
+
+        <h2>The row that changed how I measure</h2>
+        <p>
+          Look at the second and third rows. They are the same model with the same prompt on the same code, and they differ by 19 points. The
+          gap between two runs of one reviewer was as large as the gap between any two reviewers.
+        </p>
+        <p>
+          So the result does not show that another vendor’s model finds more. It shows that a second independent look finds more, whoever
+          takes it. It also means a single run of an evaluation like this cannot tell a real improvement from luck.
+        </p>
+
+        <h2>Turning the experiment into a tool</h2>
+        <p>The experiment was one script in a temp folder. I rebuilt it as a command, <code>review-eval</code>, with the lessons built in.</p>
+        <ul>
+          <li><strong>A fixed answer key.</strong> The twelve cases and 26 defects live in one file that only a human pull request may change, so the agent cannot edit its own answer key.</li>
+          <li><strong>The loop’s real code.</strong> The tool calls the same review functions the loop calls. A change to the review prompt shows up in the score without touching the tool.</li>
+          <li><strong>A judge that matches, and does not define.</strong> It maps findings to known defects. Anything new is printed for a person to read and never moves the score on its own.</li>
+          <li><strong>Noise is reported.</strong> Every evaluation runs at least twice and prints the spread. A change is adopted only if its gain is larger than the spread of both runs.</li>
+          <li><strong>A tool, never a gate.</strong> No part of the agent reads the answer key or the results. A person runs it.</li>
+        </ul>
+
+        <h2>Limits</h2>
+        <p>
+          Twelve samples is small, seven of them come from one page of the product, and the judge is itself a model. I treat the
+          percentages as rough, which is why the next step is growing the set to about thirty cases from other areas before it decides
+          much more.
+        </p>
+
+        <h2>What I took from it</h2>
+        <p>
+          An agent’s reviewer is a component like any other, and it deserves a test of its own. The useful habits were ordinary ones: decide
+          the rule before the run, keep the answer key out of the system’s reach, and report the noise next to the number.
+        </p>
+        <p class="source">
+          Notes and decision records:
+          <a href="https://github.com/taejin5314/claude-codex-loop-engineering/blob/main/docs/research/2026-11-02-review-second-opinion.md">the comparison</a>,
+          <a href="https://github.com/taejin5314/claude-codex-loop-engineering/blob/main/docs/decisions/0210-second-review-on-the-first-round.md">0210, a second review on the first round</a>,
+          <a href="https://github.com/taejin5314/claude-codex-loop-engineering/blob/main/docs/decisions/0212-review-eval-measures-the-reviewers.md">0212, review-eval</a>.
+        </p>
+      </article>
+
+      <p class="next">
+        <a href="../agent.html">Watch the agent run</a> ·
+        Also: <a href="keeping-finished-work.html">A third of my agent’s time was rework. I did not add more agents.</a>
+      </p>
+    </main>
+  </body>
+</html>

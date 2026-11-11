@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Taejin Jung, résumé</title>
+    <style>
+      @font-face {
+        font-family: 'Recursive';
+        src: url('recursive-latin.woff2') format('woff2');
+        font-weight: 300 1000;
+        font-display: swap;
+      }
+      :root {
+        --ink: #1d1220;
+        --soft: #55465b;
+        --line: #d9cfdd;
+        --mark: #7a3b8f;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #efe9f1;
+        color: var(--ink);
+        font-family: 'Recursive', ui-sans-serif, system-ui, sans-serif;
+        font-variation-settings: 'CASL' 0, 'MONO' 0;
+        font-size: 10.4pt;
+        line-height: 1.42;
+      }
+      main {
+        width: min(8.5in, 100%);
+        min-height: 11in;
+        margin: 24px auto;
+        padding: 0.55in 0.65in;
+        background: #fff;
+      }
+      .bar {
+        width: min(8.5in, 100%);
+        margin: 24px auto -8px;
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+      }
+      .bar button {
+        font: inherit;
+        font-weight: 640;
+        color: #fff;
+        background: var(--mark);
+        border: 0;
+        border-radius: 999px;
+        padding: 0.45rem 1rem;
+        cursor: pointer;
+      }
+      a {
+        color: var(--mark);
+      }
+      .bar a {
+        align-self: center;
+      }
+      h1 {
+        margin: 0;
+        font-size: 24pt;
+        line-height: 1.1;
+        font-weight: 760;
+        font-variation-settings: 'CASL' 0.8, 'MONO' 0;
+      }
+      .claim {
+        margin: 0.35rem 0 0;
+        font-size: 12pt;
+        font-weight: 560;
+      }
+      dl.contact {
+        margin: 0.7rem 0 0;
+        grid-template-columns: 4.6rem 1.6fr 3.6rem 1fr;
+        gap: 0.2rem 0.8rem;
+      }
+      .links {
+        margin: 0.1rem 0 0;
+        color: var(--soft);
+      }
+      .links b {
+        font-weight: 680;
+        color: var(--ink);
+      }
+      .links span + span {
+        margin-left: 1.4rem;
+      }
+      h2 {
+        margin: 1.05rem 0 0.4rem;
+        padding-top: 0.5rem;
+        border-top: 1.5px solid var(--ink);
+        font-size: 11pt;
+        font-weight: 760;
+      }
+      h3 {
+        margin: 0.6rem 0 0;
+        font-size: 10.6pt;
+        font-weight: 720;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      h3 span {
+        font-weight: 400;
+        color: var(--soft);
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+        font-size: 9pt;
+        white-space: nowrap;
+      }
+      p {
+        margin: 0.2rem 0 0;
+      }
+      ul {
+        margin: 0.25rem 0 0;
+        padding-left: 1.05rem;
+      }
+      li + li {
+        margin-top: 0.12rem;
+      }
+      dl {
+        margin: 0;
+        display: grid;
+        grid-template-columns: 9.5rem 1fr;
+        gap: 0.15rem 0.8rem;
+      }
+      dt {
+        font-weight: 680;
+      }
+      dd {
+        margin: 0;
+      }
+      @media (max-width: 640px) {
+        main {
+          margin: 0;
+          padding: 1.2rem 1rem;
+        }
+        .bar {
+          padding: 0 1rem;
+          margin: 12px auto;
+        }
+        dl {
+          grid-template-columns: 1fr;
+        }
+        dl.contact {
+          grid-template-columns: 4.6rem 1fr;
+        }
+        .links span {
+          display: block;
+        }
+        .links span + span {
+          margin-left: 0;
+        }
+        h3 {
+          flex-direction: column;
+          gap: 0;
+        }
+      }
+      @page {
+        size: letter;
+        margin: 0;
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        .bar {
+          display: none;
+        }
+        main {
+          margin: 0;
+          width: 8.5in;
+          min-height: 0;
+          padding: 0.36in 0.6in 0.2in;
+        }
+        html {
+          font-size: 12px;
+        }
+        body {
+          font-size: 8.6pt;
+          line-height: 1.29;
+        }
+        dl {
+          grid-template-columns: 11.5rem 1fr;
+        }
+        h2 {
+          margin: 0.75rem 0 0.3rem;
+          padding-top: 0.4rem;
+        }
+        h1 {
+          font-size: 19pt;
+        }
+        .claim {
+          font-size: 10.5pt;
+        }
+        h2 {
+          font-size: 10pt;
+        }
+        h3 {
+          font-size: 9.5pt;
+        }
+        h3 span {
+          font-size: 8pt;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bar">
+      <button onclick="print()">Print or save as PDF</button>
+      <a href="agent.html">Back to the portfolio</a>
+    </div>
+    <main>
+      <h1>Taejin Jung</h1>
+      <p class="claim">Full-stack software engineer. I build AI agents that work on their own, and stop when they should.</p>
+      <dl class="contact">
+        <dt>Location</dt>
+        <dd>Toronto, ON, Canada</dd>
+        <dt>Email</dt>
+        <dd><a href="mailto:taejin5314@gmail.com">taejin5314@gmail.com</a></dd>
+        <dt>Portfolio</dt>
+        <dd><a href="https://taejin5314.github.io">taejin5314.github.io</a></dd>
+        <dt>GitHub</dt>
+        <dd><a href="https://github.com/taejin5314">github.com/taejin5314</a></dd>
+        <dt>LinkedIn</dt>
+        <dd><a href="https://www.linkedin.com/in/taejin-jung-0abb42114">linkedin.com/in/taejin-jung-0abb42114</a></dd>
+      </dl>
+
+      <h2>Summary</h2>
+      <p>
+        Full-stack software engineer with 4+ years building Insights Capture, a high-performance Electron desktop app for gameplay recording,
+        highlight detection and video review. I ship product features end to end across TypeScript/React clients and Node.js services, with a
+        focus on performance and reliability. On the side, I build real-time AI desktop apps and autonomous coding-agent tooling with Claude
+        Code, Codex and MCP.
+      </p>
+
+      <h2>Technical skills</h2>
+      <dl>
+        <dt>Languages</dt>
+        <dd>TypeScript, JavaScript, Python, SQL</dd>
+        <dt>Frontend and desktop</dt>
+        <dd>React, Electron, Vite, HTML/CSS, desktop video and audio workflows</dd>
+        <dt>Backend and data</dt>
+        <dd>Node.js, Express, REST API design, PostgreSQL, MongoDB, SQLite</dd>
+        <dt>Tools and AI</dt>
+        <dd>Git, Docker, GitHub Actions, Vitest, Claude Code, Codex, OpenAI Realtime API, Model Context Protocol (MCP)</dd>
+      </dl>
+
+      <h2>Experience</h2>
+      <h3>Software Engineer, Insights.gg <span>Mar 2022 – present · remote</span></h3>
+      <ul>
+        <li>
+          Build and ship features for Insights Capture, an Electron + TypeScript/React app that records gameplay, detects highlights and
+          supports team video review, on a platform serving 140K+ daily active users.
+        </li>
+        <li>Helped rebuild the app as a standalone V3 release without Overwolf, making it lighter and faster.</li>
+        <li>
+          Design and integrate REST APIs between the desktop client and backend services for recording upload, clip sharing and review flows.
+        </li>
+        <li>Find and fix performance bottlenecks and crashes in video processing workflows to keep recording smooth while games run.</li>
+        <li>
+          Own features from requirements to release with product and design; review code, support production releases and troubleshoot live
+          issues.
+        </li>
+      </ul>
+      <h3>Junior Full Stack Developer, Insights.gg <span>Oct 2021 – Feb 2022</span></h3>
+      <p>Shipped web and desktop features in React and Electron; improved test coverage and debugging.</p>
+
+      <h2>Projects</h2>
+      <h3>Creator Assist, an autonomous coding-agent orchestrator (TypeScript)</h3>
+      <p class="links"><span><b>Live demo</b> <a href="https://taejin5314.github.io">taejin5314.github.io</a></span><span><b>GitHub</b> <a href="https://github.com/taejin5314/claude-codex-loop-engineering">github.com/taejin5314/claude-codex-loop-engineering</a></span></p>
+      <ul>
+        <li>
+          Loop engineering: built a local orchestrator that runs a full select, implement, check, independent review, fix and merge loop
+          with Claude Code and Codex, so approved tasks keep shipping unattended.
+        </li>
+        <li>
+          Durable state machine saves progress at usage limits and recovers after crashes; risk tiers (L0–L4) and file-boundary checks let
+          agents act alone only on low-risk changes and escalate the rest.
+        </li>
+        <li>
+          1,000+ changes merged by the agent, each with traceable requirement, test and evidence links; design changes recorded as
+          architecture decision records; every PR gated in GitHub Actions on format, lint, typecheck and the Vitest suite.
+        </li>
+      </ul>
+      <h3>autoMeetic, a real-time AI meeting copilot (Electron, React, TypeScript)</h3>
+      <p class="links"><span><b>GitHub</b> <a href="https://github.com/taejin5314/autoMeetic">github.com/taejin5314/autoMeetic</a></span></p>
+      <ul>
+        <li>
+          Desktop app with live speech-to-text (OpenAI Realtime), live translation, auto-drawn whiteboard diagrams (Excalidraw) and action
+          items; Windows and macOS installers.
+        </li>
+        <li>
+          Meeting memory built on SQLite and on-device embeddings (transformers.js) powers memory chat and a live coach; Slack huddle
+          detection; UI in English, Korean, Japanese and Chinese.
+        </li>
+      </ul>
+      <h3>ikea-mcp, an open-source MCP server (TypeScript, npm)</h3>
+      <p class="links"><span><b>GitHub</b> <a href="https://github.com/taejin5314/ikea-mcp">github.com/taejin5314/ikea-mcp</a></span><span><b>npm</b> <a href="https://www.npmjs.com/package/ikea-mcp">npmjs.com/package/ikea-mcp</a></span></p>
+      <ul>
+        <li>
+          Published on npm (<code>npx ikea-mcp</code>): tools for IKEA product search, store stock lookup and best-store-for-cart; stdio and
+          Streamable HTTP with API-key auth, deployed on Railway, unit and end-to-end tested.
+        </li>
+      </ul>
+
+      <h2>Education</h2>
+      <p>Diploma, Full Stack Web Development, Lighthouse Labs</p>
+      <p>Diploma, Electronics Engineering Technician, Seneca Polytechnic</p>
+      <p>Earlier career: Apprentice Electrician, Ace Electric (2016–2019)</p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,3132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Taejin Jung</title>
+    <meta name="description" content="Taejin Jung, full-stack software engineer in Toronto. I build AI agents that work on their own, and stop when they should: loop engineering, shown with real runs you can replay, plus my work, skills and experience." />
+    <style>
+      @font-face {
+        font-family: 'Recursive';
+        src: url('recursive-latin.woff2') format('woff2');
+        font-weight: 300 1000;
+        font-display: swap;
+      }
+      :root {
+        --ink: #f6ecf7;
+        --soft: #c3adcb;
+        --faint: #8d7896;
+        --panel: rgba(28, 12, 34, 0.7);
+        --line: rgba(214, 180, 230, 0.18);
+        --hot: #ffe2a8;
+        --bad: #ff5d73;
+        --good: #86f0b4;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #0a040d;
+        color: var(--ink);
+        font-family: 'Recursive', ui-sans-serif, system-ui, sans-serif;
+        font-variation-settings: 'CASL' 0.35, 'MONO' 0;
+        -webkit-font-smoothing: antialiased;
+      }
+      canvas#stage {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .hud {
+        position: fixed;
+        z-index: 2;
+      }
+      .who {
+        top: 26px;
+        left: 32px;
+        max-width: min(24rem, 31vw);
+        pointer-events: none;
+      }
+      .who h1 {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+      }
+      .who p {
+        margin: 0.3rem 0 0;
+        font-size: 1.32rem;
+        line-height: 1.22;
+        font-weight: 560;
+        font-variation-settings: 'CASL' 0.8, 'MONO' 0;
+        text-wrap: balance;
+      }
+      .facts {
+        display: flex;
+        gap: 1.3rem;
+        margin: 0.85rem 0 0;
+      }
+      .facts dt {
+        font-size: 1.5rem;
+        line-height: 1;
+        font-weight: 820;
+        color: var(--hot);
+        font-variation-settings: 'CASL' 0, 'MONO' 0.6;
+      }
+      .facts dd {
+        margin: 0.2rem 0 0;
+        max-width: 7.2rem;
+        font-size: 0.74rem;
+        line-height: 1.25;
+        color: var(--soft);
+      }
+      .links {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.8rem;
+        pointer-events: auto;
+      }
+      .links a {
+        font-size: 0.82rem;
+        font-weight: 620;
+        color: var(--ink);
+        text-decoration: none;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.32rem 0.8rem;
+        background: var(--panel);
+      }
+      .links a:hover,
+      .links a:focus-visible {
+        border-color: var(--hot);
+        outline: none;
+      }
+      .links a[data-draft] {
+        border-style: dashed;
+        color: var(--faint);
+      }
+      .who .count {
+        margin-top: 0.7rem;
+        font-size: 0.82rem;
+        color: var(--soft);
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+      }
+      button {
+        font: inherit;
+        font-size: 0.95rem;
+        font-weight: 640;
+        color: var(--ink);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.7rem 1.25rem;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+      }
+      button:hover {
+        border-color: rgba(255, 226, 168, 0.7);
+      }
+      button:focus-visible {
+        outline: 2px solid var(--hot);
+        outline-offset: 3px;
+      }
+      button.primary {
+        color: #1a0b1e;
+        background: var(--hot);
+        border-color: var(--hot);
+        box-shadow: 0 0 28px rgba(255, 226, 168, 0.35);
+      }
+      button.quiet {
+        font-size: 0.8rem;
+        font-weight: 480;
+        padding: 0.45rem 0.85rem;
+        color: var(--soft);
+        background: transparent;
+        backdrop-filter: none;
+      }
+      button.task {
+        border-left: 4px solid var(--c);
+        border-radius: 12px;
+      }
+      .top {
+        top: 26px;
+        right: 32px;
+      }
+      .top button {
+        font-size: 0.82rem;
+        padding: 0.5rem 0.95rem;
+      }
+      .console {
+        left: var(--cx);
+        bottom: 26px;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.55rem;
+        width: min(46rem, 94vw, var(--room, 94vw));
+      }
+      .console .ask {
+        font-size: 0.95rem;
+        color: var(--soft);
+        text-align: center;
+        min-height: 1.2rem;
+      }
+      .console .buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        min-height: 2.9rem;
+      }
+      .side {
+        top: 84px;
+        right: 32px;
+        bottom: 26px;
+        width: 22rem;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .level {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        backdrop-filter: blur(10px);
+      }
+      .level .n {
+        font-size: 0.74rem;
+        color: var(--faint);
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+      }
+      .level h2 {
+        margin: 0.1rem 0 0;
+        font-size: 1.25rem;
+        line-height: 1.2;
+        font-weight: 640;
+        font-variation-settings: 'CASL' 0.8, 'MONO' 0;
+      }
+      .level p {
+        margin: 0.4rem 0 0;
+        font-size: 0.88rem;
+        line-height: 1.42;
+        color: var(--soft);
+      }
+      .level b {
+        color: var(--hot);
+        font-weight: 780;
+      }
+      .log {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(214, 180, 230, 0.3) transparent;
+      }
+      .step {
+        border-left: 3px solid var(--c, var(--line));
+        padding: 0.3rem 0 0.35rem 0.75rem;
+        animation: arrive 0.45s cubic-bezier(0.2, 0.9, 0.2, 1);
+        transition: opacity 0.6s;
+      }
+      .step.old {
+        opacity: 0.38;
+      }
+      @keyframes arrive {
+        from {
+          opacity: 0;
+          transform: translateX(16px);
+        }
+      }
+      .step .part {
+        font-size: 0.72rem;
+        color: var(--c, var(--faint));
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+      }
+      .step .text {
+        font-size: 0.9rem;
+        line-height: 1.38;
+      }
+      .step.bad .text {
+        color: var(--bad);
+        font-weight: 620;
+      }
+      .step.good .text {
+        color: var(--good);
+        font-weight: 620;
+      }
+      .step.new {
+        background: rgba(255, 226, 168, 0.07);
+        border-radius: 0 10px 10px 0;
+        padding-right: 0.6rem;
+      }
+      .step.new .part::before {
+        content: 'New part: ';
+        color: var(--hot);
+      }
+      .step .t {
+        margin-right: 0.55em;
+        color: var(--faint);
+        font-weight: 400;
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+        font-size: 0.72rem;
+      }
+      .step.proof {
+        border-left-style: dashed;
+      }
+      .step.proof .text {
+        font-size: 0.8rem;
+        color: var(--hot);
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+      }
+      .level code {
+        font-family: inherit;
+        font-size: 0.8rem;
+        color: var(--ink, inherit);
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+      }
+      .step.run {
+        border: 0;
+        padding: 0.5rem 0 0;
+        font-size: 0.72rem;
+        color: var(--faint);
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+      }
+      .parts {
+        display: none;
+        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+      }
+      .parts.on {
+        display: grid;
+      }
+      .parts button {
+        border-radius: 8px;
+        border-left: 3px solid var(--c);
+        padding: 0.3rem 0.55rem;
+        text-align: left;
+        font-size: 0.76rem;
+        line-height: 1.2;
+      }
+      .parts button small {
+        display: block;
+        color: var(--faint);
+        font-size: 0.64rem;
+        font-weight: 400;
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+      }
+      .parts.busy button {
+        opacity: 0.45;
+        pointer-events: none;
+      }
+      .ring {
+        width: 250px;
+        margin: 1rem 0 0 -6px;
+        pointer-events: none;
+      }
+      /* A short window has no room for the map under the numbers: shrink it, then drop it. */
+      @media (max-height: 640px) {
+        .ring {
+          width: 190px;
+          margin-top: 0.5rem;
+        }
+      }
+      @media (max-height: 540px) {
+        .ring {
+          display: none;
+        }
+      }
+      #ring-fresh {
+        filter: drop-shadow(0 0 4px rgba(255, 226, 168, 0.9));
+      }
+      #ring-fresh path {
+        fill: none;
+        stroke: var(--hot);
+        stroke-width: 3;
+        stroke-linecap: round;
+      }
+      .ring figcaption {
+        font-size: 0.74rem;
+        color: var(--faint);
+        text-align: center;
+        white-space: nowrap;
+      }
+      .ring svg {
+        display: block;
+        width: 100%;
+        overflow: visible;
+      }
+      .ring .coil {
+        fill: none;
+        stroke: #c9a0dc;
+        stroke-width: 1.6;
+        stroke-linecap: round;
+      }
+      .ring .coil.now {
+        stroke: var(--soft);
+        stroke-width: 2;
+      }
+      .ring .node .up {
+        fill: none;
+        stroke: var(--soft);
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: stroke 0.3s;
+      }
+      .ring .node.on .up {
+        stroke: var(--hot);
+      }
+      .ring .levels {
+        font-size: 11.5px;
+        fill: var(--faint);
+        text-anchor: middle;
+        font-variation-settings: 'CASL' 0, 'MONO' 0.6;
+      }
+      .ring .node circle {
+        fill: #0a040d;
+        stroke: var(--faint);
+        stroke-width: 1.5;
+        transition: fill 0.3s, stroke 0.3s, r 0.3s;
+      }
+      .ring .node text,
+      .ring .side text {
+        font-size: 12.5px;
+        font-weight: 560;
+        fill: var(--soft);
+        transition: fill 0.3s;
+      }
+      .ring .node.on circle {
+        fill: var(--hot);
+        stroke: var(--hot);
+        r: 7;
+      }
+      .ring .node.on text {
+        fill: var(--hot);
+        font-weight: 760;
+      }
+      .ring .node.done circle {
+        stroke: var(--soft);
+        fill: var(--soft);
+      }
+      .ring .side path {
+        fill: none;
+        stroke: var(--faint);
+        stroke-width: 1.5;
+        stroke-dasharray: 3 4;
+        transition: stroke 0.3s;
+      }
+      .ring .side text {
+        font-size: 11.5px;
+        fill: var(--faint);
+      }
+      .ring .side.on path {
+        stroke: var(--hot);
+        stroke-dasharray: none;
+      }
+      .ring .side.on text {
+        fill: var(--hot);
+      }
+      .tip {
+        position: fixed;
+        left: 0;
+        top: 0;
+        max-width: 22rem;
+        pointer-events: none;
+        z-index: 3;
+        background: rgba(20, 8, 26, 0.94);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+        line-height: 1.35;
+        opacity: 0;
+      }
+      .tip b {
+        color: var(--hot);
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+        font-weight: 600;
+      }
+      .tag {
+        position: fixed;
+        left: 0;
+        top: 0;
+        pointer-events: none;
+        font-size: 0.78rem;
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+        color: var(--c);
+        white-space: nowrap;
+        text-shadow: 0 0 8px #0a040d, 0 0 3px #0a040d, 0 0 2px #0a040d;
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+      .who .where {
+        margin: 0.15rem 0 0;
+        font-size: 0.8rem;
+        font-weight: 400;
+        color: var(--soft);
+        font-variation-settings: 'CASL' 0, 'MONO' 0;
+      }
+      .about {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 0.9rem;
+        pointer-events: auto;
+      }
+      .about button {
+        font-size: 0.86rem;
+        padding: 0.4rem 0.9rem;
+      }
+      .about button[aria-pressed='true'],
+      .sheet-tabs button[aria-selected='true'] {
+        color: #1a0b1e;
+        background: var(--hot);
+        border-color: var(--hot);
+      }
+      .links a {
+        border: 0;
+        background: none;
+        padding: 0.2rem 0;
+        margin-right: 0.6rem;
+        color: var(--soft);
+        text-decoration: underline;
+        text-decoration-color: var(--line);
+        text-underline-offset: 0.25em;
+      }
+      .links a:hover,
+      .links a:focus-visible {
+        color: var(--hot);
+        text-decoration-color: var(--hot);
+      }
+      .sheet {
+        position: fixed;
+        z-index: 4;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(41rem, 100vw);
+        display: flex;
+        flex-direction: column;
+        background: rgba(18, 7, 23, 0.93);
+        border-left: 1px solid var(--line);
+        backdrop-filter: blur(18px);
+        transform: translateX(102%);
+        visibility: hidden;
+        transition: transform 0.38s cubic-bezier(0.2, 0.9, 0.2, 1), visibility 0s 0.38s;
+      }
+      .sheet.open {
+        transform: none;
+        visibility: visible;
+        transition-delay: 0s;
+      }
+      .sheet-head {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 1.4rem 2.2rem 1rem;
+      }
+      .sheet-tabs {
+        display: flex;
+        gap: 0.4rem;
+        flex: 1;
+      }
+      .sheet-head button {
+        font-size: 0.86rem;
+        padding: 0.4rem 0.9rem;
+        backdrop-filter: none;
+      }
+      .sheet-body {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden auto;
+        padding: 0.6rem 2.2rem 3rem;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(214, 180, 230, 0.3) transparent;
+      }
+      .sheet section[hidden] {
+        display: none;
+      }
+      .sheet .lede {
+        margin: 0 0 1.6rem;
+        max-width: 34rem;
+        font-size: 1.5rem;
+        line-height: 1.25;
+        font-weight: 560;
+        font-variation-settings: 'CASL' 0.8, 'MONO' 0;
+        text-wrap: balance;
+      }
+      .proj {
+        padding: 1.3rem 0 1.4rem 1.1rem;
+        border-left: 3px solid var(--c);
+        margin-bottom: 1.3rem;
+        scroll-margin-top: 0.5rem;
+      }
+      .proj.lit {
+        background: linear-gradient(90deg, color-mix(in srgb, var(--c) 14%, transparent), transparent 70%);
+      }
+      .proj h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        line-height: 1.15;
+        font-weight: 720;
+        color: var(--c);
+      }
+      .proj .kind {
+        margin: 0.2rem 0 0;
+        font-size: 0.92rem;
+        color: var(--ink);
+        font-weight: 560;
+      }
+      .proj p.body {
+        margin: 0.6rem 0 0;
+        max-width: 33rem;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        color: var(--soft);
+      }
+      .nums {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.6rem;
+        margin: 0.9rem 0 0;
+      }
+      .nums dt {
+        font-size: 1.15rem;
+        line-height: 1;
+        font-weight: 800;
+        color: var(--ink);
+        font-variation-settings: 'CASL' 0, 'MONO' 0.6;
+      }
+      .nums dd {
+        margin: 0.2rem 0 0;
+        font-size: 0.74rem;
+        color: var(--faint);
+      }
+      .proj .go {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.4rem 1rem;
+        margin-top: 0.9rem;
+        font-size: 0.84rem;
+      }
+      .proj .go button {
+        font-size: 0.84rem;
+        padding: 0.45rem 0.95rem;
+      }
+      .sheet a {
+        color: var(--ink);
+        text-decoration: underline;
+        text-decoration-color: var(--faint);
+        text-underline-offset: 0.25em;
+      }
+      .sheet a:hover,
+      .sheet a:focus-visible {
+        color: var(--hot);
+        text-decoration-color: var(--hot);
+      }
+      .go code {
+        font-family: inherit;
+        color: var(--c);
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+      }
+      .sheet .prose {
+        margin: 0.4rem 0 0;
+        max-width: 33rem;
+        font-size: 0.94rem;
+        line-height: 1.55;
+        color: var(--soft);
+      }
+      .sheet .nums + .note {
+        margin-top: 0.6rem;
+      }
+      .opt {
+        display: grid;
+        gap: 0.15rem;
+        max-width: 33rem;
+        margin-top: 0.6rem;
+        padding: 0.1rem 0 0.1rem 0.9rem;
+        border-left: 3px solid var(--line);
+        font-size: 0.9rem;
+        line-height: 1.45;
+        color: var(--faint);
+      }
+      .opt b {
+        font-weight: 640;
+        color: var(--soft);
+      }
+      .opt.no b {
+        text-decoration: line-through;
+        text-decoration-color: var(--faint);
+      }
+      .opt.yes {
+        border-left-color: var(--hot);
+        color: var(--soft);
+      }
+      .opt.yes b {
+        color: var(--hot);
+      }
+      section[data-view='decision'] .go {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem 1rem;
+        margin-top: 1.2rem;
+        font-size: 0.84rem;
+      }
+      section[data-view='decision'] .go button {
+        font-size: 0.84rem;
+        padding: 0.45rem 0.95rem;
+      }
+      .demo {
+        margin: 1rem 0 0;
+        max-width: 34rem;
+        padding: 0.9rem 1rem 0.8rem;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.03);
+        font-size: 0.84rem;
+      }
+      .demo .q {
+        margin: 0;
+        font-size: 0.98rem;
+        line-height: 1.4;
+        color: var(--ink);
+        font-variation-settings: 'CASL' 0.8, 'MONO' 0;
+      }
+      .demo .calls {
+        margin: 0.7rem 0 0;
+        padding-left: 1.3rem;
+        line-height: 1.6;
+        color: var(--soft);
+      }
+      .demo code {
+        font-family: inherit;
+        color: var(--c);
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+      }
+      .demo table {
+        width: 100%;
+        margin-top: 0.8rem;
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+      }
+      .demo th,
+      .demo td {
+        padding: 0.35rem 0.6rem 0.35rem 0;
+        text-align: left;
+        border-top: 1px solid var(--line);
+        font-weight: 400;
+        color: var(--soft);
+      }
+      .demo thead th {
+        border-top: 0;
+        font-size: 0.74rem;
+        color: var(--faint);
+      }
+      .demo tbody th {
+        color: var(--ink);
+        font-weight: 620;
+      }
+      .demo tbody td:last-child {
+        color: var(--good);
+        font-weight: 620;
+      }
+      .demo tr.part td:last-child,
+      .demo td.none {
+        color: var(--faint);
+        font-weight: 400;
+      }
+      .demo figcaption {
+        margin-top: 0.7rem;
+        font-size: 0.74rem;
+        line-height: 1.4;
+        color: var(--faint);
+      }
+      .sheet h4 {
+        margin: 1.8rem 0 0.3rem;
+        font-size: 1.05rem;
+        font-weight: 700;
+      }
+      .sheet h4:first-of-type {
+        margin-top: 0;
+      }
+      .skill {
+        display: grid;
+        grid-template-columns: 13.5rem 1fr;
+        gap: 0.3rem 1rem;
+        align-items: baseline;
+        padding: 0.5rem 0;
+        border-top: 1px solid var(--line);
+        font-size: 0.92rem;
+      }
+      .skill .used {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem 0.4rem;
+      }
+      .used button {
+        font-size: 0.76rem;
+        font-weight: 560;
+        padding: 0.18rem 0.6rem;
+        color: var(--c);
+        border-color: color-mix(in srgb, var(--c) 45%, transparent);
+        background: transparent;
+        backdrop-filter: none;
+      }
+      .used button:hover {
+        border-color: var(--c);
+      }
+      .sheet .note {
+        margin: 1.4rem 0 0;
+        max-width: 33rem;
+        font-size: 0.84rem;
+        line-height: 1.5;
+        color: var(--faint);
+      }
+      .job {
+        display: grid;
+        grid-template-columns: 7.2rem 1fr;
+        gap: 0 1.2rem;
+        padding: 1rem 0 1.1rem;
+        border-top: 1px solid var(--line);
+      }
+      .job .when {
+        font-size: 0.8rem;
+        line-height: 1.6;
+        color: var(--hot);
+        font-variation-settings: 'CASL' 0, 'MONO' 1;
+      }
+      .job h3 {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+      }
+      .job .at {
+        margin: 0.1rem 0 0;
+        font-size: 0.86rem;
+        color: var(--soft);
+      }
+      .job ul {
+        margin: 0.55rem 0 0;
+        padding-left: 1.1rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: var(--soft);
+      }
+      .job li + li {
+        margin-top: 0.25rem;
+      }
+      .job p.body {
+        margin: 0.55rem 0 0;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: var(--soft);
+      }
+      @media (max-width: 1080px) {
+        .sheet-head {
+          padding: 0.9rem 1rem 0.7rem;
+        }
+        .sheet-tabs {
+          gap: 0.25rem;
+        }
+        .sheet-head button {
+          font-size: 0.76rem;
+          padding: 0.35rem 0.55rem;
+          white-space: nowrap;
+        }
+        .sheet-body {
+          padding: 0.4rem 1rem 2.5rem;
+        }
+        .sheet .lede {
+          font-size: 1.2rem;
+        }
+        .skill {
+          grid-template-columns: 1fr;
+        }
+        .job {
+          grid-template-columns: 1fr;
+        }
+        .about {
+          margin-top: 0.5rem;
+          margin-right: -98px;
+          gap: 0.3rem;
+        }
+        .about button {
+          font-size: 0.8rem;
+          padding: 0.35rem 0.65rem;
+        }
+        .who .where {
+          display: none;
+        }
+        .who {
+          left: 14px;
+          top: 12px;
+          right: 110px;
+          max-width: none;
+        }
+        .who p {
+          font-size: 0.98rem;
+        }
+        .facts dd,
+        .who .count {
+          display: none;
+        }
+        .facts {
+          gap: 0.9rem;
+          margin-top: 0.4rem;
+        }
+        .facts dt {
+          font-size: 1.05rem;
+        }
+        .links {
+          margin-top: 0.45rem;
+        }
+        .top {
+          right: 12px;
+          top: 12px;
+        }
+        .side {
+          left: 12px;
+          right: 12px;
+          width: auto;
+          top: calc(56vh + 34px);
+          bottom: 168px;
+        }
+        /* Away from the first screen the stage needs the room: keep the name and the three buttons only. */
+        .ring {
+          display: none;
+        }
+        body.away .facts,
+        body.away .links {
+          display: none;
+        }
+        .parts.on {
+          display: flex;
+          flex: none;
+          overflow: auto hidden;
+          padding-bottom: 4px;
+          scrollbar-width: none;
+        }
+        .parts button {
+          flex: none;
+        }
+        .console .buttons {
+          gap: 6px;
+        }
+        button.quiet {
+          font-size: 0.76rem;
+          padding: 0.35rem 0.7rem;
+        }
+        .level {
+          display: none;
+        }
+        .console {
+          bottom: 12px;
+        }
+        button {
+          font-size: 0.82rem;
+          padding: 0.55rem 0.8rem;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .step {
+          animation: none;
+        }
+        .sheet {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="stage" aria-label="A brain that sends signals to a robot. Each part of the brain is one part of the loop agent."></canvas>
+
+    <div class="hud who">
+      <h1>Taejin Jung</h1>
+      <div class="where">Full-stack software engineer in Toronto</div>
+      <p>I build AI agents that work on their own, and stop when they should.</p>
+      <dl class="facts">
+        <div><dt id="fact-merges">0</dt><dd>changes it merged by itself</dd></div>
+        <div><dt>354</dt><dd>times it stopped and asked</dd></div>
+        <div><dt>18</dt><dd>parts, like a brain’s</dd></div>
+      </dl>
+      <div class="about" id="about">
+        <button data-open="work" aria-pressed="false">Work</button>
+        <button data-open="skills" aria-pressed="false">Skills</button>
+        <button data-open="decision" aria-pressed="false">Case study</button>
+        <button data-open="experience" aria-pressed="false">Experience</button>
+      </div>
+      <nav class="links">
+        <a href="index.html">Overview</a>
+        <a href="index.html#writing">Writing</a>
+        <a href="resume.html" target="_blank" rel="noopener">Résumé</a>
+        <a href="https://github.com/taejin5314" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.linkedin.com/in/taejin-jung-0abb42114" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="mailto:taejin5314@gmail.com">Email</a>
+      </nav>
+      <div class="count" id="count"></div>
+      <figure class="ring" id="ring" aria-label="The loop drawn as a rising spiral. Each turn: pick a task and write it on one side, check and review it on the other, then merge, which lifts the spiral one level. A failed check or review means another turn on the same level. When it cannot decide, it asks a human.">
+        <svg id="ring-svg" viewBox="0 18 250 164" role="img"></svg>
+        <figcaption>A turn per attempt, a level per merge</figcaption>
+      </figure>
+    </div>
+
+    <aside class="sheet" id="sheet" aria-label="About Taejin Jung">
+      <div class="sheet-head">
+        <div class="sheet-tabs" role="tablist">
+          <button role="tab" data-open="work" aria-selected="false">Work</button>
+          <button role="tab" data-open="skills" aria-selected="false">Skills</button>
+          <button role="tab" data-open="decision" aria-selected="false">Case study</button>
+          <button role="tab" data-open="experience" aria-selected="false">Experience</button>
+        </div>
+        <button id="sheet-close">Close</button>
+      </div>
+      <div class="sheet-body" id="sheet-body">
+        <section data-view="work" hidden>
+          <p class="lede">Four things I have built. One is my job, three are my own.</p>
+
+          <article class="proj" id="p-creator" style="--c: #ffd98a">
+            <h3>Creator Assist</h3>
+            <p class="kind">Loop engineering: a system that keeps coding agents shipping approved tasks unattended</p>
+            <p class="body">
+              Loop engineering is building the system that runs coding agents on repeat, instead of prompting them by hand. This one picks
+              an approved task, has an agent write it, runs eight checks, and sends the diff to an independent verifier: a different model
+              that reads it cold. What comes back is fixed and tried again. Durable state kept outside the model’s context survives usage
+              limits and crashes. A budget and a kill switch bound every run, risk tiers and file-boundary checks limit what it may change
+              alone, and everything else is escalated to a person. Every design change is written down as a decision record first. The
+              brain behind this panel is this project.
+            </p>
+            <dl class="nums">
+              <div><dt data-total>1,005</dt><dd>changes merged by the agent</dd></div>
+              <div><dt>354</dt><dd>times it stopped and asked</dd></div>
+            </dl>
+            <div class="go">
+              <button class="primary" id="watch-run">Replay a real run</button>
+              <a href="https://github.com/taejin5314/claude-codex-loop-engineering" target="_blank" rel="noopener">Source on GitHub</a>
+            </div>
+          </article>
+
+          <article class="proj" id="p-insights" style="--c: #7fd4ff">
+            <h3>Insights Capture</h3>
+            <p class="kind">Gameplay recording and team video review, at Insights.gg since 2021</p>
+            <p class="body">
+              An Electron app in TypeScript and React that records gameplay, detects highlights and supports team video review. I helped rebuild
+              it as a standalone V3 release without Overwolf, which made it lighter and faster. I also build the REST APIs between the desktop
+              client and the backend for upload, clip sharing and review, and fix crashes and slow paths in video processing so recording stays
+              smooth while a game runs.
+            </p>
+            <dl class="nums">
+              <div><dt>140K+</dt><dd>daily active users on the platform</dd></div>
+              <div><dt>4+ years</dt><dd>from junior developer to software engineer</dd></div>
+            </dl>
+            <div class="go"><a href="https://insights.gg" target="_blank" rel="noopener">insights.gg</a></div>
+          </article>
+
+          <article class="proj" id="p-meetic" style="--c: #86f0b4">
+            <h3>autoMeetic</h3>
+            <p class="kind">A real-time AI meeting copilot for the desktop</p>
+            <p class="body">
+              Live speech-to-text and translation, whiteboard diagrams that draw themselves as people talk, and action items. Past meetings are
+              kept in SQLite with on-device embeddings, which power a memory chat and a live coach. It detects Slack huddles, ships Windows and
+              macOS installers, and speaks English, Korean, Japanese and Chinese.
+            </p>
+            <div class="go"><a href="https://github.com/taejin5314/autoMeetic" target="_blank" rel="noopener">Source on GitHub</a></div>
+          </article>
+
+          <article class="proj" id="p-ikea" style="--c: #b79bff">
+            <h3>ikea-mcp</h3>
+            <p class="kind">An open-source MCP server, published on npm</p>
+            <p class="body">
+              Lets an AI assistant search IKEA products, check stock at a store and find the best store for a whole cart. It runs over stdio or
+              Streamable HTTP with API-key auth, with unit and end-to-end tests. An outside contributor added Norway.
+            </p>
+            <figure class="demo">
+              <p class="q">“I need two BILLY bookcases and a POÄNG armchair. Which IKEA near downtown Toronto has both?”</p>
+              <ol class="calls">
+                <li><code>search_products</code> finds BILLY bookcase 205.220.46, CA$90</li>
+                <li><code>search_products</code> finds POÄNG armchair 493.065.70, CA$119</li>
+                <li><code>find_best_store_for_cart</code> ranks the four nearest stores in 214 ms</li>
+              </ol>
+              <table>
+                <thead><tr><th>Store</th><th>Distance</th><th>BILLY, need 2</th><th>POÄNG, need 1</th><th>Cart</th></tr></thead>
+                <tbody>
+                <tr><th>Etobicoke</th><td>12.8 km</td><td>65 in stock</td><td>33 in stock</td><td>Has both</td></tr>
+                <tr><th>North York</th><td>12.8 km</td><td>55 in stock</td><td>22 in stock</td><td>Has both</td></tr>
+                <tr><th>Vaughan</th><td>19 km</td><td>103 in stock</td><td>11 in stock</td><td>Has both</td></tr>
+                <tr class="part"><th>Toronto Downtown</th><td>0.7 km</td><td class="none">none listed</td><td>6 in stock</td><td>1 of 2</td></tr>
+                </tbody>
+              </table>
+              <figcaption>Real output from ikea-mcp 1.9.0, captured 11 November 2026. The question is an example; the stock numbers are IKEA’s, live.</figcaption>
+            </figure>
+            <div class="go">
+              <code>npx ikea-mcp</code>
+              <a href="https://github.com/taejin5314/ikea-mcp" target="_blank" rel="noopener">Source on GitHub</a>
+              <a href="https://www.npmjs.com/package/ikea-mcp" target="_blank" rel="noopener">npm</a>
+            </div>
+          </article>
+        </section>
+
+        <section data-view="skills" hidden>
+          <p class="lede">Each skill, next to the work where I used it.</p>
+
+          <h4>AI agents</h4>
+          <div class="skill"><span>Loop engineering</span><span class="used" data-used="creator"></span></div>
+          <div class="skill"><span>Claude Code, Codex</span><span class="used" data-used="creator"></span></div>
+          <div class="skill"><span>Model Context Protocol</span><span class="used" data-used="ikea"></span></div>
+          <div class="skill"><span>OpenAI Realtime API</span><span class="used" data-used="meetic"></span></div>
+          <div class="skill"><span>On-device embeddings</span><span class="used" data-used="meetic"></span></div>
+
+          <h4>Desktop and full stack</h4>
+          <div class="skill"><span>TypeScript, JavaScript</span><span class="used" data-used="creator insights meetic ikea"></span></div>
+          <div class="skill"><span>React, Electron</span><span class="used" data-used="insights meetic"></span></div>
+          <div class="skill"><span>Node.js, REST API design</span><span class="used" data-used="insights ikea"></span></div>
+          <div class="skill"><span>Desktop video and audio</span><span class="used" data-used="insights meetic"></span></div>
+          <div class="skill"><span>SQLite</span><span class="used" data-used="meetic"></span></div>
+          <div class="skill"><span>Python</span><span class="used" data-used="creator"></span></div>
+
+          <h4>Quality and operations</h4>
+          <div class="skill"><span>Vitest</span><span class="used" data-used="creator meetic"></span></div>
+          <div class="skill"><span>GitHub Actions</span><span class="used" data-used="creator ikea"></span></div>
+          <div class="skill"><span>Risk tiers and audit trails</span><span class="used" data-used="creator"></span></div>
+
+          <p class="note">Also part of my toolkit: Vite, Express, PostgreSQL, MongoDB, SQL, Docker and Git.</p>
+        </section>
+
+        <section data-view="decision" hidden>
+          <p class="lede">I removed rework that was taking a third of the agent’s time, with every safety check still in place.</p>
+
+          <h4>The result</h4>
+          <dl class="nums">
+            <div><dt>96</dt><dd>finished changes carried forward instead of redone</dd></div>
+            <div><dt>96 of 96</dt><dd>kept their review, because the patch was unchanged</dd></div>
+          </dl>
+          <p class="note">From the agent’s event log, 10 October to 10 November 2026.</p>
+
+          <h4>The opportunity</h4>
+          <p class="prose">
+            The agent merges only the exact commit it verified, and only onto the exact main it verified against. That strictness is what
+            lets it merge with nobody watching. I measured a working session and saw where the time went: when main moved during a run, a
+            change that had already passed review was being rebuilt from the start. That rework was 32% of the session.
+          </p>
+
+          <h4>The options I weighed</h4>
+          <div class="opt no">
+            <b>Run more agents in parallel.</b>
+            <span>They share one usage limit, so the estimate was 1.2 times the output for twice the agents.</span>
+          </div>
+          <div class="opt no">
+            <b>Leave it as it was.</b>
+            <span>Safe, but it kept redoing the work most likely to be right: work that had already passed every gate.</span>
+          </div>
+          <div class="opt yes">
+            <b>Carry the finished change forward.</b>
+            <span>Rebuild it on the new main, run every check again, and keep the review only if the patch itself is unchanged. Merge queues and Gerrit work the same way.</span>
+          </div>
+
+          <h4>What I built</h4>
+          <p class="prose">
+            The third. The merge rule stayed exactly as strict: checks always run again on the rebuilt change, and a patch that changed goes
+            back to the reviewer. The speed came from keeping good work, with the same gates.
+          </p>
+          <div class="go">
+            <button class="primary" id="watch-refresh">Replay a run where this happens</button>
+            <a href="https://github.com/taejin5314/claude-codex-loop-engineering/blob/main/docs/decisions/0126-loop-speed-without-more-agents.md" target="_blank" rel="noopener">Decision record 0126</a>
+            <a href="https://github.com/taejin5314/claude-codex-loop-engineering/blob/main/docs/decisions/0025-atomic-verified-merge-push.md" target="_blank" rel="noopener">The merge rule, 0025</a>
+          </div>
+        </section>
+
+        <section data-view="experience" hidden>
+          <p class="lede">I wired buildings before I wrote software.</p>
+
+          <div class="job">
+            <div class="when">2022 – now</div>
+            <div>
+              <h3>Software Engineer</h3>
+              <p class="at">Insights.gg, remote</p>
+              <ul>
+                <li>Build and ship features for Insights Capture, on a platform with 140K+ daily active users.</li>
+                <li>Helped rebuild the app as a standalone V3 release without Overwolf.</li>
+                <li>Design the REST APIs between the desktop client and backend for upload, clip sharing and review.</li>
+                <li>Find and fix performance bottlenecks and crashes in video processing.</li>
+                <li>Own features from requirements to release, review code and troubleshoot live issues.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="job">
+            <div class="when">2021 – 2022</div>
+            <div>
+              <h3>Junior Full Stack Developer</h3>
+              <p class="at">Insights.gg</p>
+              <p class="body">Shipped web and desktop features in React and Electron, and improved test coverage and debugging.</p>
+            </div>
+          </div>
+          <div class="job">
+            <div class="when">2016 – 2019</div>
+            <div>
+              <h3>Apprentice Electrician</h3>
+              <p class="at">Ace Electric</p>
+              <p class="body">
+                You test a circuit before you energise it. The checks, the kill switch and the 354 stops in the agent come from the same habit.
+              </p>
+            </div>
+          </div>
+
+          <h4>Education</h4>
+          <div class="job">
+            <div class="when">Diploma</div>
+            <div>
+              <h3>Full Stack Web Development</h3>
+              <p class="at">Lighthouse Labs</p>
+            </div>
+          </div>
+          <div class="job">
+            <div class="when">Diploma</div>
+            <div>
+              <h3>Electronics Engineering Technician</h3>
+              <p class="at">Seneca Polytechnic</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <div class="hud top"><button id="again">Start over</button></div>
+
+    <div class="hud side">
+      <div class="level" id="level"></div>
+      <div class="parts" id="parts"></div>
+      <div class="log" id="log" aria-live="polite"></div>
+    </div>
+
+    <div class="hud console">
+      <div class="ask" id="ask"></div>
+      <div class="buttons" id="buttons"></div>
+    </div>
+
+
+    <div class="tip" id="tip"></div>
+
+    <script src="merges.js"></script>
+    <script src="traces.js"></script>
+    <script src="sim.js"></script>
+    <script>
+      'use strict';
+      /* global NeuralSim */
+      const { createGraph, createCloud, REGIONS, INDEX } = NeuralSim;
+      const params = new URLSearchParams(location.search);
+      const SEED = Number(params.get('seed') || 11);
+
+      // Draft wording, numbers and ADR references: TJ confirms each before this is shown to anyone.
+      const PARTS = {
+        thalamus: { bio: 'Thalamus', title: 'Orchestrator' },
+        motor: { bio: 'Motor cortex', title: 'Implementer' },
+        brainstem: { bio: 'Brainstem', title: 'Merge' },
+        somatosensory: { bio: 'Somatosensory cortex', title: 'Checks' },
+        reflex: { bio: 'Spinal reflex', title: 'Kill switch' },
+        hippocampus: { bio: 'Hippocampus', title: 'Shared memory' },
+        parietal: { bio: 'Parietal lobe', title: 'Boundary gate' },
+        insula: { bio: 'Insula', title: 'Dashboard and audit trail' },
+        cerebellum: { bio: 'Cerebellum', title: 'Supervisor' },
+        cingulate: { bio: 'Anterior cingulate', title: 'Independent reviewer' },
+        hypothalamus: { bio: 'Hypothalamus', title: 'Budget' },
+        broca: { bio: 'Broca’s area', title: 'Reports' },
+        wernicke: { bio: 'Wernicke’s area', title: 'Directive intake' },
+        prefrontal: { bio: 'Prefrontal cortex', title: 'Planner' },
+        amygdala: { bio: 'Amygdala', title: 'Egress gate' },
+        basal: { bio: 'Basal ganglia', title: 'Preference learning' },
+        occipital: { bio: 'Occipital lobe', title: 'Code perception' },
+        olfactory: { bio: 'Olfactory bulb', title: 'Trend radar' },
+      };
+      const TASKS = [
+        { id: 'feature', label: 'Add a feature', word: 'feature', color: '#ffd98a' },
+        { id: 'fix', label: 'Fix a bug', word: 'fix', color: '#ff8f66' },
+        { id: 'tidy', label: 'Tidy up', word: 'cleanup', color: '#86f0b4' },
+      ];
+      const START = ['thalamus', 'motor', 'brainstem'];
+
+      // ---------- canvas
+      const canvas = document.getElementById('stage');
+      const ctx = canvas.getContext('2d');
+      const scene = document.createElement('canvas');
+      const sx = scene.getContext('2d');
+      const blurA = document.createElement('canvas');
+      const blurB = document.createElement('canvas');
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let W = 0, H = 0, DPR = 1, UNIT = 1, CX = 0, CY = 0, U = 1, FLOOR = 0, FREE = 0;
+      // The camera looks at a point of the scene (device pixels) with a zoom; that point lands on (CX, H / 2).
+      const cam = { x: 0, y: 0, z: 1, fx: 0, fy: 0, fz: 1, tx: 0, ty: 0, tz: 1, t0: 0, dur: 0 };
+      let GUT = 0; // device pixels kept clear on the left for the name, numbers and loop map
+      function resize() {
+        DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+        W = Math.floor(innerWidth * DPR);
+        H = Math.floor(innerHeight * DPR);
+        for (const c of [canvas, scene]) {
+          c.width = W;
+          c.height = H;
+        }
+        blurA.width = Math.ceil(W / 4);
+        blurA.height = Math.ceil(H / 4);
+        blurB.width = Math.ceil(W / 12);
+        blurB.height = Math.ceil(H / 12);
+        const narrow = innerWidth < 1080;
+        const free = narrow ? W : W - 24 * 16 * DPR; // the side panel takes the right
+        FREE = free;
+        // On a wide window the stage is centred in what is left between the left column and the side panel,
+        // and scales with that room, so the brain and the robot never slide under either.
+        // The brain's rounded corner may reach a little way over the column's edge; nothing else may.
+        const whoRight = document.querySelector('.who').getBoundingClientRect().right;
+        const column = narrow ? 0 : Math.max(300, whoRight - 40) * DPR, room = free - column;
+        GUT = narrow ? 0 : (innerHeight < 780 && innerWidth >= 1600 ? whoRight + 14 : 300) * DPR;
+        document.documentElement.style.setProperty('--room', Math.max(240, room / DPR - 24) + 'px');
+        CX = narrow ? free / 2 : column + room / 2;
+        CY = H * (narrow ? 0.285 : 0.33);
+        // Stacked layout: the brain and the robot split the band of height between the header and the floor.
+        const band = 0.275 * H;
+        UNIT = narrow ? Math.min(free / 3.9, (band * 0.5) / 0.85) : Math.min(room / 2.9, H / 4.5);
+        U = narrow ? Math.min(W / 520, (band * 0.6) / 190) : Math.min(room / 690, H / 900); // robot scale, in device pixels
+        FLOOR = H - (narrow ? 0.44 * H : 132 * DPR);
+        document.documentElement.style.setProperty('--cx', CX / DPR + 'px');
+        cam.x = cam.tx = CX;
+        cam.y = cam.ty = H / 2;
+        cam.z = cam.tz = 1;
+        cam.dur = 0;
+      }
+      addEventListener('resize', resize);
+      resize();
+
+      const sprites = new Map();
+      function sprite(color) {
+        if (sprites.has(color)) return sprites.get(color);
+        const c = document.createElement('canvas');
+        c.width = c.height = 64;
+        const g = c.getContext('2d');
+        const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.18, color);
+        grad.addColorStop(0.5, color + '55');
+        grad.addColorStop(1, color + '00');
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 64, 64);
+        sprites.set(color, c);
+        return c;
+      }
+      const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+      const RGB = REGIONS.map((r) => rgb(r.color));
+      const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+      // ---------- state
+      const graph = createGraph(SEED);
+      const cloud = createCloud(SEED + 7);
+      const N = graph.nodes.length;
+      let grown, partGrow, partPulse, partMood, act, simT, sleepers, signals, paths, runId, tagHold, rings;
+      let robot, blocks, ghost, flag, prop, sky, busy;
+      const logEl = document.getElementById('log');
+      const levelEl = document.getElementById('level');
+      const askEl = document.getElementById('ask');
+      const buttonsEl = document.getElementById('buttons');
+      const countEl = document.getElementById('count');
+      const tags = REGIONS.map((region) => {
+        const tag = document.createElement('div');
+        tag.className = 'tag';
+        tag.style.setProperty('--c', region.color);
+        tag.textContent = PARTS[region.id].title;
+        document.body.appendChild(tag);
+        return tag;
+      });
+
+      const partsEl = document.getElementById('parts');
+      const tipEl = document.getElementById('tip');
+      function resetProps() {
+        prop = { bubble: null, other: false, barrier: 0, scan: -1, zzz: false, off: false, choice: -1 };
+        if (ghost) ghost.on = false;
+        flag = 0;
+      }
+      function setBusy(v) {
+        busy = v;
+        partsEl.classList.toggle('busy', v);
+      }
+      function camTo(x, y, z, dur) {
+        cam.fx = cam.x;
+        cam.fy = cam.y;
+        cam.fz = cam.z;
+        cam.tx = x;
+        cam.ty = y;
+        cam.tz = z;
+        cam.t0 = simT;
+        cam.dur = dur || 0.8;
+      }
+      const camHome = (dur) => camTo(CX, H / 2, 1, dur);
+      function camPart(id) {
+        const c = REGIONS[INDEX[id]].label;
+        const p = turn(c[0], c[1], c[2], [0, 0, 0]);
+        // When something is showing on the robot's side, stay wide enough to see both.
+        const both = ghost.on || prop.bubble || prop.other || prop.choice >= 0 || flag > 0;
+        const k = both ? 0.1 : 0.8;
+        camTo(p[0] * k + CX * (1 - k), p[1] * k + (H / 2) * (1 - k), both ? 1.03 : 1.55, 0.7);
+      }
+      const camRobot = () => camTo(RX(-10), RY(-125), 1.45, 0.7);
+      function camWide(dur) {
+        const left = Math.min(RX(-330), CX - UNIT * 1.5), right = RX(SKYX + 55 * PITCH + 40), top = CY - UNIT, bottom = FLOOR + 46 * U;
+        // The scene spans the width between the left column and the side panel, with the floor in the lower part of the frame.
+        const narrow = innerWidth < 1080, edge = narrow ? FREE * 0.025 : GUT;
+        const z = Math.min((FREE * 0.975 - edge) / (right - left), H / (bottom - top));
+        // The date labels under the floor need about 190 px below them for the prompt and the buttons.
+        const drop = narrow ? 0.08 : Math.min(0.26, (innerHeight - 190) / innerHeight - 0.5);
+        camTo(left + (CX - edge) / z, FLOOR - (drop * H) / z, z, dur);
+      }
+
+      class Cancelled extends Error {}
+      const sleep = (seconds) => new Promise((resolve, reject) => sleepers.push({ at: simT + seconds, resolve, reject, run: runId }));
+
+      function reset() {
+        runId = (runId || 0) + 1;
+        if (sleepers) for (const s of sleepers) s.reject(new Cancelled());
+        if (signals) for (const s of signals) s.reject(new Cancelled());
+        grown = new Set(START.map((id) => INDEX[id]));
+        partGrow = new Float32Array(REGIONS.length);
+        partPulse = new Float32Array(REGIONS.length);
+        partMood = new Array(REGIONS.length).fill('');
+        act = new Float32Array(N);
+        simT = 0;
+        sleepers = [];
+        signals = [];
+        paths = new Map();
+        rings = [];
+        tagHold = new Float32Array(REGIONS.length);
+        for (const r of grown) tagHold[r] = 4;
+        robot = { gx: REST[0], gy: REST[1], tx: REST[0], ty: REST[1], fx: REST[0], fy: REST[1], t0: 0, dur: 0, held: null, eye: '#7fd4ff', eyePulse: 0, bob: 0 };
+        blocks = [];
+        for (let i = 0; i < 3; i++) blocks.push(makeBlock(i, '#b79bff'));
+        ghost = { on: false, tilt: 0, wide: false, mood: '' };
+        flag = 0;
+        resetProps();
+        sky = { on: false, count: 0, t0: 0, dur: 1 };
+        busy = false;
+        partsEl.classList.remove('on', 'busy');
+        document.body.classList.add('away');
+        if (typeof ringClear === 'function') ringClear();
+        cam.x = cam.tx = CX;
+        cam.y = cam.ty = H / 2;
+        cam.z = cam.tz = 1;
+        cam.dur = 0;
+        logEl.innerHTML = '';
+        count();
+      }
+      function count() {
+        countEl.textContent = 'Brain: ' + grown.size + ' of ' + REGIONS.length + ' parts';
+      }
+
+      // ---------- robot world (units are design pixels at 1440x900, origin at the floor under the brain)
+      const BW = 58, BH = 24, TOWER = 96;
+      const REST = [-10, -176];
+      function makeBlock(i, color) {
+        return { x: TOWER, y: -(i * BH + BH / 2), rot: 0, vx: 0, vy: 0, vr: 0, w: BW, color, loose: false, alpha: 1 };
+      }
+      const standing = () => blocks.filter((b) => !b.gone).length;
+      function moveArm(x, y, dur) {
+        robot.fx = robot.gx;
+        robot.fy = robot.gy;
+        robot.tx = x;
+        robot.ty = y;
+        robot.t0 = simT;
+        robot.dur = dur;
+        return sleep(dur);
+      }
+      async function place(color, crooked) {
+        robot.held = { color, alpha: 0, w: BW };
+        robot.eye = color;
+        robot.eyePulse = 1;
+        await sleep(0.25);
+        const n = standing();
+        const top = -(n * BH + BH / 2);
+        await moveArm(TOWER + (crooked ? 20 : 0), top - 46, 0.55);
+        await moveArm(TOWER + (crooked ? 20 : 0), top - 2, 0.3);
+        const b = makeBlock(n, color);
+        if (crooked) {
+          b.x += 20;
+          b.rot = 0.16;
+        }
+        blocks.push(b);
+        robot.held = null;
+        await moveArm(REST[0], REST[1], 0.5);
+        robot.eye = '#7fd4ff';
+      }
+      async function collapse() {
+        robot.eye = '#ff5d73';
+        robot.eyePulse = 1;
+        for (let k = 0; k < 14; k++) {
+          const lean = Math.sin(k * 1.1) * 0.012 * k;
+          blocks.forEach((b, i) => (b.rot = lean * i + (i === blocks.length - 1 ? 0.16 : 0)));
+          await sleep(0.05);
+        }
+        blocks.forEach((b, i) => {
+          b.loose = true;
+          b.vx = 60 + i * 55 + Math.random() * 40;
+          b.vy = -40 - Math.random() * 60;
+          b.vr = 2 + Math.random() * 3;
+        });
+        await sleep(1.5);
+      }
+      async function restore(keep) {
+        blocks = blocks.slice(0, keep);
+        blocks.forEach((b) => (b.loose = false));
+        const from = blocks.map((b) => ({ x: b.x, y: b.y, rot: b.rot }));
+        const t0 = simT;
+        while (simT - t0 < 0.8) {
+          const k = ease((simT - t0) / 0.8);
+          blocks.forEach((b, i) => {
+            b.x = from[i].x + (TOWER - from[i].x) * k;
+            b.y = from[i].y + (-(i * BH + BH / 2) - from[i].y) * k;
+            b.rot = from[i].rot * (1 - k);
+          });
+          await sleep(0.016);
+        }
+        blocks.forEach((b, i) => Object.assign(b, makeBlock(i, b.color)));
+        robot.eye = '#7fd4ff';
+      }
+
+      // ---------- brain signals
+      function nodeOf(r) {
+        const m = graph.members[r];
+        return graph.nodes[m[Math.floor(Math.random() * m.length)]];
+      }
+      function travel(fromId, toId, color) {
+        const a = INDEX[fromId], b = INDEX[toId];
+        const key = a + ':' + b;
+        let path = paths.get(key);
+        if (!path) {
+          const p0 = nodeOf(a), p1 = nodeOf(b);
+          path = {
+            p0: [p0.x, p0.y, p0.z],
+            p1: [p1.x, p1.y, p1.z],
+            pc: [(p0.x + p1.x) / 2 * 0.6 + (Math.random() - 0.5) * 0.3, (p0.y + p1.y) / 2 * 0.6 + 0.05 + (Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.3],
+            color: REGIONS[b].color,
+            strength: 0,
+          };
+          paths.set(key, path);
+        }
+        return new Promise((resolve, reject) => signals.push({ path, t: 0, dur: 0.6, color: color || REGIONS[b].color, resolve, reject, kind: 'brain' }));
+      }
+      function down(color) {
+        camRobot();
+        return new Promise((resolve, reject) => signals.push({ t: 0, dur: 0.55, color, resolve, reject, kind: 'nerve' }));
+      }
+      function pulse(id, mood) {
+        const r = INDEX[id];
+        partPulse[r] = 1;
+        partMood[r] = mood || '';
+        tagHold[r] = 2.6;
+        for (const i of graph.members[r]) if (Math.random() < 0.7) act[i] = 1;
+        const c = REGIONS[r].label;
+        rings.push({ p: c, t: 0, color: mood === 'bad' ? '#ff5d73' : mood === 'good' ? '#86f0b4' : REGIONS[r].color });
+      }
+      let stamp = '';
+      function say(id, text, mood, extra) {
+        for (const el of logEl.querySelectorAll('.step.fresh')) el.classList.remove('fresh');
+        const el = document.createElement('div');
+        el.className = 'step fresh ' + (mood || '') + (extra ? ' ' + extra : '');
+        const part = document.createElement('div');
+        part.className = 'part';
+        const body = document.createElement('div');
+        body.className = 'text';
+        body.textContent = text;
+        if (id) {
+          el.style.setProperty('--c', REGIONS[INDEX[id]].color);
+          part.textContent = PARTS[id].title + ' (' + PARTS[id].bio.toLowerCase() + ')';
+          el.appendChild(part);
+        }
+        if (stamp) {
+          const t = document.createElement('span');
+          t.className = 't';
+          t.textContent = stamp;
+          (id ? part : body).prepend(t);
+        }
+        el.appendChild(body);
+        logEl.appendChild(el);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+      function newRun(label) {
+        for (const el of logEl.children) el.classList.add('old');
+        const el = document.createElement('div');
+        el.className = 'step run';
+        el.textContent = label;
+        logEl.appendChild(el);
+      }
+      /** One stop of the signal at a part: light it, say what it did, give time to read. */
+      async function at(id, text, mood, hold) {
+        camPart(id);
+        pulse(id, mood);
+        say(id, text, mood);
+        await sleep(hold || 1.5);
+      }
+      async function grow(id, text) {
+        const r = INDEX[id];
+        grown.add(r);
+        count();
+        camPart(id);
+        tagHold[r] = 6;
+        say(id, text, '', 'new');
+        await sleep(1.2);
+        pulse(id, 'good');
+        await sleep(1.4);
+      }
+
+      // ---------- console
+      function ask(text, buttons, keepCam) {
+        if (buttons.length && !keepCam) camHome(0.9);
+        askEl.textContent = text;
+        buttonsEl.innerHTML = '';
+        for (const b of buttons) {
+          const el = document.createElement('button');
+          el.textContent = b.label;
+          if (b.primary) el.className = 'primary';
+          if (b.quiet) el.className = 'quiet';
+          if (b.color) {
+            el.className = 'task';
+            el.style.setProperty('--c', b.color);
+          }
+          el.addEventListener('click', () => {
+            document.body.classList.add('away');
+            ask('', []);
+            const mine = runId;
+            b.go().catch((e) => {
+              if (!(e instanceof Cancelled) && mine === runId) throw e;
+            });
+          });
+          buttonsEl.appendChild(el);
+        }
+      }
+      const pickTask = (text, go) => ask(text, TASKS.map((t) => ({ label: t.label, color: t.color, go: () => go(t) })));
+      function level(n, title, body) {
+        levelEl.innerHTML = '<div class="n"></div><h2></h2><p></p>';
+        levelEl.querySelector('.n').textContent = n;
+        levelEl.querySelector('h2').textContent = title;
+        levelEl.querySelector('p').innerHTML = body;
+      }
+
+      // ---------- the three failures, then the whole brain
+      function level1() {
+        level('Where it started', 'A brain with three parts', 'An orchestrator, an implementer and a merge. That is where the loop started: one request in, one change out.');
+        pickTask('Pick a job for the robot.', async (task) => {
+          newRun('Run 1');
+          await at('thalamus', 'Takes the ' + task.word + ' request and hands it to the implementer.');
+          await travel('thalamus', 'motor');
+          await at('motor', 'Writes the change.');
+          await travel('motor', 'brainstem');
+          await at('brainstem', 'Nothing checks the change. It goes straight to main.', 'bad');
+          await down(task.color);
+          await place(task.color, true);
+          await collapse();
+          say(null, 'The build broke. No part of this brain could feel that the change was wrong.', 'bad');
+          await sleep(0.8);
+          ask('Something is missing between writing the change and merging it.', [
+            {
+              label: 'Grow the missing part',
+              primary: true,
+              go: async () => {
+                await restore(3);
+                await grow('somatosensory', 'Checks. Eight checks run on every change, and a failing check’s own output goes back to the implementer. In a brain, this part feels what a movement did. (ADR-0044)');
+                ask('Same job, new brain.', [{ label: 'Send it again', primary: true, go: () => level1b(task) }]);
+              },
+            },
+          ]);
+        });
+      }
+      async function checked(task, firstTryFails) {
+        await travel('motor', 'somatosensory');
+        if (firstTryFails) {
+          ghost = { on: true, tilt: 0.16, wide: false, mood: 'bad' };
+          await at('somatosensory', '1 of 8 checks failed. The output goes back to the implementer.', 'bad');
+          await travel('somatosensory', 'motor');
+          await at('motor', 'Reads the failing check and tries again. Attempt 2.');
+          await travel('motor', 'somatosensory');
+        }
+        ghost = { on: true, tilt: 0, wide: false, mood: 'good' };
+        await at('somatosensory', '8 of 8 checks passed.', 'good');
+        await travel('somatosensory', 'brainstem');
+        await at('brainstem', 'Only the checked commit goes to main.');
+        ghost.on = false;
+        await down(task.color);
+        await place(task.color, false);
+      }
+      async function level1b(task) {
+        newRun('Run 2');
+        await at('thalamus', 'Takes the ' + task.word + ' request and hands it to the implementer.');
+        await travel('thalamus', 'motor');
+        await at('motor', 'Writes the change.');
+        await checked(task, true);
+        say(null, 'Merged. The mistake was caught in the brain, before the robot moved.', 'good');
+        await sleep(0.8);
+        ask('One failure, one new part.', [
+          { label: 'Grow the rest of the brain', primary: true, go: finale },
+          { label: 'Two more failures first', go: async () => level2() },
+        ]);
+      }
+
+      function level2() {
+        level('A second failure', 'A job that cannot be done', 'Some tasks are wrong from the start: the plan asks for something the checks will never accept.');
+        pickTask('Pick a job. This one has a flaw the agent cannot fix by trying harder.', async (task) => {
+          newRun('Run 3');
+          await at('thalamus', 'Takes the ' + task.word + ' request and hands it to the implementer.');
+          await travel('thalamus', 'motor');
+          await at('motor', 'Writes the change.');
+          let hold = 1.2;
+          for (let attempt = 1; attempt <= 9; attempt++) {
+            await travel('motor', 'somatosensory');
+            ghost = { on: true, tilt: 0, wide: true, mood: 'bad' };
+            await at('somatosensory', attempt === 1 ? 'A check failed. The output goes back.' : 'Same failure.', 'bad', hold);
+            await travel('somatosensory', 'motor');
+            await at('motor', 'Attempt ' + (attempt + 1) + '.', '', hold * 0.7);
+            hold = Math.max(0.22, hold * 0.72);
+          }
+          ghost.on = false;
+          say(null, 'It will try this forever and burn its whole budget. The robot never moved.', 'bad');
+          await sleep(0.8);
+          ask('It needs a way to stop itself.', [
+            {
+              label: 'Grow the missing part',
+              primary: true,
+              go: async () => {
+                await grow('reflex', 'Kill switch. Four identical failures in a day and the system stops itself and writes down why. In a body, this reflex pulls the hand from the fire before the brain decides. (ADR-0090)');
+                ask('Same job, new brain.', [{ label: 'Send it again', primary: true, go: () => level2b(task) }]);
+              },
+            },
+          ]);
+        });
+      }
+      async function level2b(task) {
+        newRun('Run 4');
+        await at('thalamus', 'Takes the ' + task.word + ' request and hands it to the implementer.');
+        await travel('thalamus', 'motor');
+        await at('motor', 'Writes the change.');
+        for (let attempt = 1; attempt <= 4; attempt++) {
+          await travel('motor', 'somatosensory');
+          ghost = { on: true, tilt: 0, wide: true, mood: 'bad' };
+          await at('somatosensory', attempt === 1 ? 'A check failed. The output goes back.' : 'Same failure, ' + ['', '', 'second', 'third', 'fourth'][attempt] + ' time.', 'bad', 1.0);
+          if (attempt === 4) break;
+          await travel('somatosensory', 'motor');
+          await at('motor', 'Attempt ' + (attempt + 1) + '.', '', 0.8);
+        }
+        await travel('somatosensory', 'reflex', '#ff5d73');
+        ghost.on = false;
+        await at('reflex', 'Same failure, fourth time. Stop.', 'bad');
+        await down('#ff5d73');
+        robot.eye = '#ffe2a8';
+        robot.eyePulse = 1;
+        const t0 = simT;
+        while (simT - t0 < 0.6) {
+          flag = ease((simT - t0) / 0.6);
+          await sleep(0.016);
+        }
+        flag = 1;
+        say(null, 'It stopped and asked a human. The real loop has done that 354 times rather than guess, most recently on 10 November 2026.', 'good');
+        await sleep(0.8);
+        ask('', [{ label: 'Next job', primary: true, go: async () => level3() }]);
+      }
+
+      function level3() {
+        flag = 0;
+        level('A third failure', 'A job like yesterday’s', 'The agent has done this kind of job before. Watch its first attempt.');
+        pickTask('Pick a job.', async (task) => {
+          newRun('Run 5');
+          await at('thalamus', 'Takes the ' + task.word + ' request and hands it to the implementer.');
+          await travel('thalamus', 'motor');
+          await at('motor', 'Writes the change.');
+          await checked(task, true);
+          say(null, 'Merged, but it made the same first mistake it fixed in job 1. Nothing was remembered.', 'bad');
+          await sleep(0.8);
+          ask('It needs to keep what it learns.', [
+            {
+              label: 'Grow the missing part',
+              primary: true,
+              go: async () => {
+                await grow('hippocampus', 'Shared memory. After each cycle the lesson is written down, and before the next one every agent reads the pages that touch its files. 274 pages so far. In a brain, this part turns experience into memory. (ADR-0088)');
+                ask('A new job of the same kind.', [{ label: 'Send it', primary: true, go: () => level3b(task) }]);
+              },
+            },
+          ]);
+        });
+      }
+      async function level3b(task) {
+        newRun('Run 6');
+        await at('thalamus', 'Takes the ' + task.word + ' request.');
+        await travel('thalamus', 'hippocampus');
+        await at('hippocampus', 'Finds the lesson from job 1: “square the change against the check before handing it over.”');
+        await travel('hippocampus', 'motor');
+        await at('motor', 'Writes the change with the lesson in hand.');
+        await checked(task, false);
+        say(null, 'Merged on the first try.', 'good');
+        await sleep(0.8);
+        ask('Three failures, three parts. The real loop has eighteen.', [{ label: 'Grow the rest of the brain', primary: true, go: finale }]);
+      }
+
+      async function finale() {
+        newRun('The rest of the brain');
+        for (const region of REGIONS) {
+          const r = INDEX[region.id];
+          if (grown.has(r)) continue;
+          grown.add(r);
+          count();
+          tagHold[r] = 1.6;
+          pulse(region.id, '');
+          say(region.id, PARTS[region.id].title + '.', '', '');
+          await sleep(0.42);
+        }
+        await sleep(0.6);
+        // One sweep of activity from front to back: the brain is whole.
+        const t0 = simT;
+        while (simT - t0 < 1.4) {
+          const front = -1.4 + (simT - t0) * 2.2;
+          graph.nodes.forEach((n, i) => {
+            if (Math.abs(n.x - front) < 0.12) act[i] = 1;
+          });
+          REGIONS.forEach((region, r) => {
+            if (Math.abs(region.center[0] - front) < 0.15) partPulse[r] = 1;
+          });
+          await sleep(0.016);
+        }
+        level('Complete', 'This is the loop agent I built.', 'Eighteen parts, each doing the job its part of a brain does. Since 17 September 2026 it has merged <b>' + TOTAL + '</b> changes on its own, and <b>354</b> times it stopped and asked rather than guess.');
+        explore();
+      }
+      async function wholeRun() {
+        setBusy(true);
+        const task = TASKS[Math.floor(Math.random() * TASKS.length)];
+        {
+          if (standing() >= 7) await restore(3);
+          newRun('A whole run');
+          pulse('cerebellum', '');
+          await at('wernicke', 'Reads the one-line request: ' + task.label.toLowerCase() + '.', '', 0.9);
+          await travel('wernicke', 'thalamus');
+          await at('thalamus', 'Starts a cycle.', '', 0.7);
+          await travel('thalamus', 'prefrontal');
+          await at('prefrontal', 'One small task, with limits and acceptance criteria.', '', 1.0);
+          await travel('prefrontal', 'hippocampus');
+          await at('hippocampus', 'Pulls the lessons that touch these files.', '', 0.9);
+          await travel('hippocampus', 'motor');
+          await at('motor', 'Writes the change.', '', 0.8);
+          await travel('motor', 'parietal');
+          await at('parietal', 'Only the files the task names were touched.', '', 0.9);
+          await travel('parietal', 'somatosensory');
+          ghost = { on: true, tilt: 0, wide: false, mood: 'good' };
+          await at('somatosensory', '8 of 8 checks passed.', 'good', 0.9);
+          await travel('somatosensory', 'cingulate');
+          await at('cingulate', 'A second model reads it cold. Approved.', 'good', 0.9);
+          await travel('cingulate', 'brainstem');
+          await at('brainstem', 'The checked commit goes to main.', '', 0.7);
+          ghost.on = false;
+          await down(task.color);
+          pulse('insula', '');
+          await place(task.color, false);
+          say(null, 'Merged.', 'good');
+          await sleep(0.5);
+        }
+        setBusy(false);
+        exploreConsole();
+      }
+
+      // ---------- every part, shown at work
+      const MERGES = window.MERGES || [];
+      const TOTAL = MERGES.length.toLocaleString('en');
+      const ROUTE = ['wernicke', 'thalamus', 'prefrontal', 'hippocampus', 'motor', 'parietal', 'somatosensory', 'cingulate', 'brainstem'];
+      const bubble = (lines, where) => (prop.bubble = { lines, where: where || 'robot' });
+      const SCENES = {
+        async wernicke() {
+          bubble(['human: “add a feature”'], 'left');
+          await sleep(0.9);
+          await at('wernicke', 'Every task starts as one line of plain language from a human. This part reads it.', '', 2.2);
+          await travel('wernicke', 'thalamus');
+          await at('thalamus', 'A cycle starts.', '', 0.9);
+        },
+        async thalamus() {
+          await at('thalamus', 'The relay. It starts a cycle and hands the task from role to role, and it knows nothing about any one platform.', '', 2.2);
+          await Promise.all([travel('thalamus', 'prefrontal'), travel('thalamus', 'motor'), travel('thalamus', 'hippocampus')]);
+          pulse('prefrontal');
+          pulse('motor');
+          pulse('hippocampus');
+          await sleep(1.2);
+        },
+        async prefrontal() {
+          ghost = { on: true, tilt: 0, wide: true, mood: 'bad' };
+          await at('prefrontal', 'This request is too big for one change. The planner splits it into small ordered tasks, each with its own limits and acceptance criteria.', '', 2.6);
+          ghost.on = false;
+          for (let i = 0; i < 3; i++) {
+            await travel('prefrontal', 'motor');
+            pulse('motor');
+            await down('#b79bff');
+            await place('#b79bff', false);
+          }
+          say(null, 'Three small merges instead of one large risky one.', 'good');
+        },
+        async hippocampus() {
+          await at('hippocampus', 'Before the work starts, memory hands over the lessons that touch these files. After the cycle, the new lesson is written down. 274 pages so far.', '', 2.6);
+          await travel('hippocampus', 'motor');
+          await at('motor', 'Writes the change with the lesson in hand.', '', 1.0);
+          await down('#6fe3e0');
+          await place('#6fe3e0', false);
+        },
+        async motor() {
+          await at('motor', 'The implementer writes the change on its own branch. When a check fails it reads the output and tries again, up to three times.', '', 2.4);
+          await travel('motor', 'brainstem');
+          await down('#ff8f66');
+          await place('#ff8f66', false);
+        },
+        async parietal() {
+          prop.other = true;
+          await sleep(0.5);
+          await at('motor', 'Writes the change, and also edits a file next door.', '', 1.3);
+          await travel('motor', 'parietal');
+          camRobot();
+          await moveArm(TOWER + 118, -116, 0.6);
+          prop.barrier = 1;
+          await at('parietal', 'That file is not in this task. The boundary gate refuses the change: a task may touch only the files it names, within a file and line limit.', 'bad', 2.6);
+          await moveArm(REST[0], REST[1], 0.5);
+        },
+        async somatosensory() {
+          await at('motor', 'Writes the change.', '', 0.9);
+          await travel('motor', 'somatosensory');
+          ghost = { on: true, tilt: 0.16, wide: false, mood: 'bad' };
+          await at('somatosensory', 'Eight checks run on every change. One fails, and its own output goes straight back to the implementer.', 'bad', 2.4);
+          await travel('somatosensory', 'motor');
+          await travel('motor', 'somatosensory');
+          ghost = { on: true, tilt: 0, wide: false, mood: 'good' };
+          await at('somatosensory', '8 of 8 passed on the second attempt.', 'good', 1.3);
+          ghost.on = false;
+        },
+        async cingulate() {
+          ghost = { on: true, tilt: 0, wide: false, mood: 'good' };
+          await at('somatosensory', 'All checks passed.', 'good', 1.0);
+          await travel('somatosensory', 'cingulate');
+          ghost.mood = 'bad';
+          await at('cingulate', 'Passing checks is not enough. A different model reads the diff and its evidence cold, against an 18-rule rubric, and sends it back.', 'bad', 2.6);
+          await travel('cingulate', 'motor');
+          await at('motor', 'Fixes what the reviewer found.', '', 1.0);
+          await travel('motor', 'cingulate');
+          ghost.mood = 'good';
+          await at('cingulate', 'Approved.', 'good', 1.0);
+          ghost.on = false;
+          await down('#ff7fb8');
+          await place('#ff7fb8', false);
+        },
+        async brainstem() {
+          await at('brainstem', 'The only way out of the brain. A change is merged only if it passed every check, against the exact commit that was checked.', '', 2.4);
+          await down('#86f0b4');
+          await place('#86f0b4', false);
+        },
+        async reflex() {
+          ghost = { on: true, tilt: 0, wide: true, mood: 'bad' };
+          await at('somatosensory', 'Same failure, fourth time.', 'bad', 1.0);
+          await travel('somatosensory', 'reflex', '#ff5d73');
+          ghost.on = false;
+          await at('reflex', 'The kill switch. It stops the whole system and writes down why, before anything decides to try again.', 'bad', 2.2);
+          await down('#ff5d73');
+          const t0 = simT;
+          while (simT - t0 < 0.6) {
+            flag = ease((simT - t0) / 0.6);
+            await sleep(0.016);
+          }
+          flag = 1;
+          await sleep(1.4);
+        },
+        async cerebellum() {
+          robot.held = { color: '#9be28a', alpha: 0, w: BW };
+          camRobot();
+          await moveArm(40, -210, 0.5);
+          prop.off = true;
+          await moveArm(40, -150, 0.5);
+          say(null, 'The run dies halfway.', 'bad');
+          await sleep(0.9);
+          await at('cerebellum', 'The supervisor keeps time. It notices the dead run, clears the lock it left, and starts it again. It also waits out quota limits and cools down a task that keeps failing.', '', 2.8);
+          prop.off = false;
+          robot.eye = '#7fd4ff';
+          robot.held = null;
+          await down('#9be28a');
+          await place('#9be28a', false);
+        },
+        async hypothalamus() {
+          await at('hypothalamus', 'It reads its real plan usage. When the budget is nearly spent it waits instead of overspending. No usage-billed API.', '', 2.4);
+          camRobot();
+          prop.zzz = true;
+          await sleep(2.2);
+          prop.zzz = false;
+          robot.eye = '#7fd4ff';
+          robot.eyePulse = 1;
+          say(null, 'Quota is back. It carries on.', 'good');
+          await sleep(0.9);
+        },
+        async amygdala() {
+          await at('motor', 'Writes the change.', '', 0.9);
+          await travel('motor', 'amygdala', '#ff5d73');
+          ghost = { on: true, tilt: 0, wide: false, mood: 'bad' };
+          bubble(['blocked: opens a network connection'], 'tower');
+          await at('amygdala', 'The threat detector. A change that reaches for the network, a process or a credential is stopped before any check runs.', 'bad', 2.8);
+        },
+        async insula() {
+          await at('brainstem', 'A change is merged.', '', 0.8);
+          await down('#a8c7ff');
+          await place('#a8c7ff', false);
+          bubble(['plan  ok', 'change  ok', '8 checks  ok', 'review  ok', 'merged'], 'tower');
+          await at('insula', 'The agent’s sense of its own state. Every cycle leaves a trace a human can read: each stop, each check, and why it ended.', '', 2.8);
+        },
+        async broca() {
+          await at('reflex', 'It has stopped.', 'bad', 0.9);
+          await travel('reflex', 'broca');
+          bubble(['blocking fact', 'evidence', 'options', 'the one decision I need'], 'robot');
+          await at('broca', 'It speaks. A stop is reported as the blocking fact, the evidence, the options, and the smallest decision a human has to make.', '', 3.0);
+        },
+        async basal() {
+          prop.choice = 0;
+          await at('motor', 'Two ways to do this.', '', 1.1);
+          await travel('motor', 'basal');
+          prop.choice = 1;
+          await at('basal', 'It has recorded which option this human picked before, and learns to choose that one itself.', '', 2.6);
+          prop.choice = -1;
+          await down('#f3a0ff');
+          await place('#f3a0ff', false);
+        },
+        async occipital() {
+          camRobot();
+          for (let i = 0; i < standing(); i++) {
+            prop.scan = i;
+            await sleep(0.28);
+          }
+          prop.scan = 1;
+          await at('occipital', 'It sees the code. A trace index and an import graph show which files a change will touch before anything is edited.', '', 2.6);
+          prop.scan = -1;
+        },
+        async olfactory() {
+          bubble(['new idea from outside…', 'does it fit the tool?'], 'left');
+          await sleep(0.8);
+          await at('olfactory', 'Once a day it looks at what is new outside, and keeps only what fits: nothing billed per use, no new dependency, nothing that replaces a gate.', '', 2.8);
+        },
+      };
+
+      function explore() {
+        partsEl.innerHTML = '';
+        for (const region of REGIONS) {
+          const b = document.createElement('button');
+          b.style.setProperty('--c', region.color);
+          b.innerHTML = '<span></span><small></small>';
+          b.firstChild.textContent = PARTS[region.id].title;
+          b.lastChild.textContent = PARTS[region.id].bio;
+          b.addEventListener('click', () => play(region.id));
+          partsEl.appendChild(b);
+        }
+        partsEl.classList.add('on');
+        exploreConsole();
+      }
+      function exploreConsole(keepCam) {
+        ask(
+          sky.on ? 'Click a part to see it work, or a block to replay that run.' : 'Pick any part to see it work.',
+          [
+            { label: 'Replay a real run', primary: true, go: () => replay(pickRun()) },
+            { label: 'Send a job through the whole brain', quiet: true, go: wholeRun },
+            { label: 'Replay everything it merged', quiet: true, go: skyline },
+          ],
+          keepCam,
+        );
+      }
+      async function play(id) {
+        if (busy) return;
+        const mine = runId;
+        setBusy(true);
+        ask('', []);
+        try {
+          resetProps();
+          if (standing() >= 7) await restore(3);
+          newRun(PARTS[id].bio);
+          await SCENES[id]();
+          if (PROOF[id]) {
+            say(id, 'From the event log: ' + PROOF[id], '', 'proof');
+            await sleep(1.6);
+          }
+          await sleep(0.7);
+        } catch (e) {
+          if (!(e instanceof Cancelled)) throw e;
+        }
+        if (mine !== runId) return;
+        resetProps();
+        setBusy(false);
+        exploreConsole();
+      }
+
+      // ---------- everything it really merged, as a skyline
+      const SKYX = 250, PITCH = 27, SROW = 7;
+      const WEEK = ['#ffd98a', '#ff8f66', '#86f0b4', '#7fd4ff', '#b79bff', '#ff7fb8', '#6fe3e0', '#f3a0ff'];
+      const skyDay = [], skyK = [], dayItems = [];
+      MERGES.forEach((m, i) => {
+        (dayItems[m[0]] = dayItems[m[0]] || []).push(i);
+        skyDay[i] = m[0];
+        skyK[i] = dayItems[m[0]].length - 1;
+      });
+      const dateOf = (d) => new Date(Date.UTC(2026, 8, 17) + d * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+      /** Rains the real merges into the skyline over `dur` seconds. */
+      async function rain(dur, ticker) {
+        sky = { on: true, count: 0, t0: simT, dur };
+        let nerve = 0;
+        while (sky.count < MERGES.length) {
+          const next = Math.min(MERGES.length, Math.floor(((simT - sky.t0) / sky.dur) * MERGES.length) + 1);
+          for (let i = sky.count; i < next; i += 2) {
+            const r = INDEX[ROUTE[(i >> 1) % ROUTE.length]];
+            partPulse[r] = 1;
+            for (const n of graph.members[r]) if (Math.random() < 0.3) act[n] = 1;
+          }
+          sky.count = next;
+          const m = MERGES[next - 1];
+          if (ticker) level(next.toLocaleString('en') + ' of ' + TOTAL, dateOf(m[0]), (m[1] ? m[1] + ' ' : '') + m[2].replace(/[<&]/g, ''));
+          if (simT - nerve > 0.12) {
+            nerve = simT;
+            signals.push({ t: 0, dur: 0.5, color: WEEK[Math.floor(m[0] / 7) % WEEK.length], resolve() {}, reject() {}, kind: 'nerve' });
+          }
+          await sleep(0.03);
+        }
+      }
+      async function skyline() {
+        setBusy(true);
+        resetProps();
+        newRun('Everything it merged');
+        camWide(1.5);
+        await sleep(1.3);
+        await rain(15, true);
+        await sleep(0.8);
+        level('From the git history', TOTAL + ' changes merged to main.', 'Every block is one change the loop merged on its own between 17 September and 10 November 2026. Columns are days. Click a block to replay that run from the event log.');
+        say(null, TOTAL + ' merges on 39 days, and 354 times it stopped and asked rather than guess.', 'good');
+        setBusy(false);
+        exploreConsole(true);
+      }
+      /** The first thing a visitor sees: the finished brain running one real task from the log. */
+      async function intro() {
+        REGIONS.forEach((_, r) => grown.add(r));
+        partGrow.fill(1);
+        tagHold.fill(0);
+        count();
+        const run = replay(runOf(FEATURED.merged), 'merged');
+        ask('You are watching a real run of the agent, replayed from its own log.', [{ label: 'Skip to everything it merged', quiet: true, go: skipRun }], true);
+        await run;
+      }
+      async function skipRun() {
+        runId++;
+        for (const waiter of [...sleepers, ...signals]) waiter.reject(new Cancelled());
+        sleepers = [];
+        signals = [];
+        stamp = '';
+        setBusy(false);
+        await showAll();
+      }
+      /** From one run to all of them: the skyline of every change the agent merged. */
+      async function showAll() {
+        document.body.classList.remove('away');
+        resetProps();
+        logEl.innerHTML = '';
+        level('From the git history', 'That was one run. Here are all ' + TOTAL + '.', 'Every block is one real change the agent merged on its own between 17 September and 10 November 2026. Columns are days. Click a block to replay that run from the event log.');
+        camWide(1.3);
+        await sleep(1.1);
+        await rain(5, false);
+        ask(
+          'Each block is a run like that one. It also knows when to hand a decision to a person.',
+          [
+            { label: 'See it ask for a decision', primary: true, go: () => replay(runOf(FEATURED.stopped), 'stopped') },
+            { label: 'See how it got here', quiet: true, go: rewind },
+            { label: 'Explore the finished brain', quiet: true, go: async () => explore() },
+          ],
+          true,
+        );
+      }
+      async function rewind() {
+        const had = sky.count, t0 = simT;
+        while (simT - t0 < 1.1) {
+          sky.count = Math.floor(had * (1 - ease((simT - t0) / 1.1)));
+          await sleep(0.016);
+        }
+        sky = { on: false, count: 0, t0: 0, dur: 1 };
+        grown = new Set(START.map((id) => INDEX[id]));
+        count();
+        for (const r of grown) tagHold[r] = 5;
+        camHome(1.3);
+        await sleep(1.5);
+        level1();
+      }
+      /** The skyline block under the pointer, or -1. */
+      function skyAt(e) {
+        if (!sky.on || sky.hide) return -1;
+        const wx = (e.clientX * DPR - CX) / cam.z + cam.x, wy = (e.clientY * DPR - H / 2) / cam.z + cam.y;
+        const rx = (wx - CX) / U - SKYX, ry = (FLOOR - wy) / U;
+        const d = Math.floor(rx / PITCH), col = rx - d * PITCH < 12.5 ? 0 : 1, row = Math.floor(ry / SROW);
+        const items = dayItems[d];
+        if (!items || row < 0) return -1;
+        const i = items[row * 2 + col];
+        return i === undefined || i >= sky.count ? -1 : i;
+      }
+      function hoverSky(e) {
+        tipEl.style.opacity = 0;
+        canvas.style.cursor = '';
+        const i = busy ? -1 : skyAt(e);
+        if (i < 0) return;
+        const m = MERGES[i];
+        const has = TRACE_OF[i] >= 0;
+        tipEl.innerHTML = '<b></b><br><span></span><br><small></small>';
+        tipEl.firstChild.textContent = dateOf(m[0]) + (m[1] ? '  ' + m[1] : '');
+        tipEl.children[2].textContent = m[2];
+        tipEl.lastChild.textContent = has ? 'Click to replay this run' : 'Merged before the event log existed';
+        if (has) canvas.style.cursor = 'pointer';
+        tipEl.style.opacity = 1;
+        tipEl.style.transform = 'translate(' + Math.min(innerWidth - 370, e.clientX + 14) + 'px,' + (e.clientY - 56) + 'px)';
+      }
+
+
+      // ---------- real runs, replayed from the loop's own event log (traces.js)
+      const TRACES = window.TRACES || [], TRACE_OF = window.TRACE_OF || [], STATS = window.STATS || {};
+      const clock = (s) => '+' + String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+      const span = (s) => (s < 90 ? s + ' seconds' : Math.round(s / 60) + ' minutes');
+      const many = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
+      const big = (n) => Number(n).toLocaleString('en');
+      const WORKER = { claude: 'Claude', local: 'a local model', codex: 'Codex' };
+      const BAD = '#ff5d73';
+      // Chosen for a first visit: a check fails and the second attempt merges; the same check fails three times and it stops.
+      const FEATURED = { merged: '20261107T235105022Z', stopped: '20261109T222711186Z' };
+      function runOf(cycleId) {
+        const i = TRACES.findIndex((t) => t[0] === cycleId);
+        return i >= 0 ? i : pickRun(cycleId === FEATURED.stopped ? 'needs_human' : '');
+      }
+      /** From a replay back to the three-part brain the loop started as. */
+      async function toStart() {
+        resetProps();
+        logEl.innerHTML = '';
+        if (standing() > 3) await restore(3);
+        sky = { on: false, count: 0, t0: 0, dur: 1 };
+        grown = new Set(START.map((id) => INDEX[id]));
+        count();
+        for (const r of grown) tagHold[r] = 5;
+        camHome(1.3);
+        await sleep(1.5);
+        level1();
+      }
+      function pickRun(kind) {
+        const pool = [];
+        TRACES.forEach((t, i) => {
+          const last = t[5][t[5].length - 1];
+          if (kind ? t[3] === kind : t[3] === 'merged' && last[3] === 2 && t[5][0][3]) pool.push(i);
+        });
+        return pool[Math.floor(Math.random() * pool.length)];
+      }
+      function afterRun() {
+        resetProps();
+        sky.hide = false;
+        logEl.innerHTML = '';
+        level('Complete', 'This is the loop agent I built.', 'Eighteen parts, each doing the job its part of a brain does. Every run it made is in the event log, and any of them can be replayed here.');
+        explore();
+        if (sky.on) {
+          camWide(1.2);
+          exploreConsole(true);
+        }
+      }
+      async function replay(index, guided) {
+        const tr = TRACES[index];
+        if (busy || !tr) return;
+        const mine = runId;
+        const [cycleId, taskId, title, status, reason, events] = tr;
+        setBusy(true);
+        document.body.classList.add('away');
+        ask('', []);
+        tipEl.style.opacity = 0;
+        canvas.style.cursor = '';
+        let prev = null;
+        const stop = async (t, id, text, mood) => {
+          stamp = clock(t);
+          if (prev && prev !== id) await travel(prev, id, mood === 'bad' ? BAD : undefined);
+          prev = id;
+          ringStep(id, mood);
+          pulse(id, mood);
+          say(id, text, mood);
+          await sleep(1.05);
+        };
+        try {
+          resetProps();
+          partsEl.classList.remove('on');
+          sky.hide = true;
+          camHome(0.9);
+          robot.eye = '#7fd4ff';
+          if (standing() >= 7) await restore(3);
+          const day = new Date(Date.UTC(+cycleId.slice(0, 4), cycleId.slice(4, 6) - 1, +cycleId.slice(6, 8)));
+          const when = day.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) + ', ' + cycleId.slice(9, 11) + ':' + cycleId.slice(11, 13) + ' UTC';
+          const total = events[events.length - 1][0];
+          level('A real run, ' + when, '', 'Replayed from the loop’s own event log, cycle <code>' + cycleId + '</code>. ' + span(total) + ' of real time; the clock on each line is the real one.');
+          levelEl.querySelector('h2').textContent = (taskId ? taskId + ': ' : '') + title;
+          newRun('cycle ' + cycleId);
+          const color = TASKS[index % TASKS.length].color;
+          const finished = {}, gated = {};
+          for (const e of events) if (e[1] === 'f') finished[e[2]] = e;
+          // The log records the review before the attempt's result, so the gates an attempt passed are shown first.
+          const gates = async (t, attempt) => {
+            if (gated[attempt]) return;
+            gated[attempt] = true;
+            const f = finished[attempt];
+            await stop(t, 'parietal', (f ? many(f[5], 'file') + ' touched, all' : 'Every touched file is') + ' inside the task’s allowed paths.', '');
+            ghost = { on: true, tilt: 0, wide: false, mood: 'good' };
+            await stop(t, 'somatosensory', 'Every check passed' + (f && f[4] ? ' at ' + f[4] : '') + '.', 'good');
+          };
+          for (const e of events) {
+            const t = e[0];
+            if (e[1] === 's') {
+              pulse('cerebellum', '');
+              const m = e[3] ? e[3].split('/') : null;
+              await stop(t, 'thalamus', 'Cycle starts on main at ' + e[2] + '.' + (m ? ' Planner ' + m[0] + ', implementer ' + m[1] + ', reviewer ' + m[2] + '.' : ''), '');
+            } else if (e[1] === 'b') {
+              if (e[2]) await stop(t, 'somatosensory', e[3] ? 'Baseline: this commit of main was already verified.' : 'Baseline: runs every check on untouched main first. Passed.', '');
+              else await stop(t, 'somatosensory', 'Baseline: main itself fails its checks. Nothing may be built on it.', 'bad');
+            } else if (e[1] === 'k') {
+              await stop(t, 'hippocampus', 'Recalls ' + many(e[3], 'lesson') + ' for ' + (e[2] === 'ceo' ? 'the planner' : 'this task') + (e[4] ? ': ' + e[4] + (e[3] > 1 ? ', …' : '') : '') + '.', '');
+            } else if (e[1] === 'h') {
+              await stop(t, 'hippocampus', 'Withholds ' + many(e[2], 'lesson') + ' on purpose. This run is in the holdout group that measures whether memory helps.', '');
+            } else if (e[1] === 't') {
+              await stop(t, 'prefrontal', 'Picks ' + (taskId || 'one small task') + (e[2] === 'catalog' ? ' from the approved catalog' : '') + '.' + (e[3] ? ' It names ' + many(e[3], 'file') + ' to produce.' : ''), '');
+            } else if (e[1] === 'a') {
+              ghost.on = false;
+              await stop(t, 'motor', 'Attempt ' + e[2] + ', written by ' + (WORKER[e[3]] || e[3]) + (e[4] ? ' with the last failure as feedback' : '') + '.', '');
+            } else if (e[1] === '2') {
+              await gates(t, e[2]);
+              await stop(t, 'cingulate', e[3] ? 'Second reviewer: ' + many(e[4], 'finding') + '.' : 'The second reviewer failed to answer; the run goes on with the first.', '');
+            } else if (e[1] === 'r') {
+              await gates(t, e[2]);
+              if (e[3] === 'passed') await stop(t, 'cingulate', 'A different model reads the diff cold. Passed' + (e[6] === null ? '' : ', confidence ' + e[6]) + ', ' + many(e[4], 'note') + ', ' + (e[5] ? e[5] + ' blocking' : 'none blocking') + '.', 'good');
+              else if (e[3] === 'revision_required') await stop(t, 'cingulate', 'A different model reads the diff cold. Sent back: ' + many(e[4], 'issue') + ', ' + e[5] + ' blocking.', 'bad');
+              else await stop(t, 'cingulate', 'The reviewer will not decide this one. It asks for a human.', 'bad');
+            } else if (e[1] === 'f') {
+              if (e[3] === 'boundary') {
+                await stop(t, 'parietal', 'Touched ' + many(e[6] || 1, 'file') + ' outside the task’s allowed paths. Rejected before any check ran.', 'bad');
+              } else if (e[3] === 'checks') {
+                await stop(t, 'parietal', many(e[5], 'file') + ' touched, all inside the task’s allowed paths.', '');
+                ghost = { on: true, tilt: 0, wide: true, mood: 'bad' };
+                await stop(t, 'somatosensory', 'A check failed' + (e[4] ? ' at ' + e[4] : '') + '. The output goes back to the implementer.', 'bad');
+              } else if (e[3] === 'no_changes') {
+                await stop(t, 'motor', 'The worker produced no change.', 'bad');
+              } else if (e[3] === 'worker_failed') {
+                await stop(t, 'motor', 'The worker failed before producing a result.', 'bad');
+              } else if (e[3] === 'review_error') {
+                await stop(t, 'cingulate', 'The review did not complete.', 'bad');
+              }
+            } else if (e[1] === 'c') {
+              await stop(t, 'thalamus', 'Main moved while it worked. Rebuilt and rechecked on ' + e[2] + (e[3] ? '; the patch is identical' : '') + (e[4] ? ', so the review carries over.' : '.'), '');
+            } else if (e[1] === 'm') {
+              await stop(t, 'brainstem', 'Merges ' + e[2] + ' as ' + e[3] + (e[4] ? ' (PR #' + e[4] + ')' : '') + ', and only if main has not moved.', '');
+              ghost.on = false;
+              await down(color);
+              pulse('insula', '');
+              await place(color, false);
+              camHome(0.8);
+            } else if (e[1] === 'w') {
+              await stop(t, 'hippocampus', (e[2] ? 'Writes down ' + many(e[2], 'new lesson') : 'Updates its notes') + ' for next time' + (e[3] ? ': ' + e[3] : '') + '.', '');
+            } else if (e[1] === 'e') {
+              stamp = clock(t);
+              ghost.on = false;
+              if (status === 'merged') {
+                say(null, 'Merged in ' + span(t) + (e[3] > 1 ? ', on attempt ' + e[3] : ', on the first attempt') + '.', 'good');
+              } else if (status === 'needs_human') {
+                if (prev) await travel(prev, 'reflex', BAD);
+                ringStep('reflex', 'bad');
+                pulse('reflex', 'bad');
+                say('reflex', 'Stops the run and asks a human.', 'bad');
+                await sleep(0.9);
+                await down(BAD);
+                robot.eye = '#ffe2a8';
+                robot.eyePulse = 1;
+                const t0 = simT;
+                while (simT - t0 < 0.6) {
+                  flag = ease((simT - t0) / 0.6);
+                  await sleep(0.016);
+                }
+                flag = 1;
+                say(null, reason || 'It stopped and asked.', 'bad');
+                await sleep(0.7);
+                camHome(0.9);
+              } else {
+                say(null, status.replace(/_/g, ' ') + (reason ? ': ' + reason : ''), '');
+              }
+            }
+          }
+          stamp = '';
+          await sleep(0.6);
+        } catch (e) {
+          stamp = '';
+          if (!(e instanceof Cancelled)) throw e;
+        }
+        if (mine !== runId) return;
+        setBusy(false);
+        if (guided === 'merged' && !sky.on) return showAll();
+        if (guided === 'merged')
+          return ask(
+            'That is what one block in the skyline is. It also knows when to hand a decision to a person.',
+            [
+              { label: 'See it ask for a decision', primary: true, go: () => replay(runOf(FEATURED.stopped), 'stopped') },
+              { label: 'Explore the finished brain', quiet: true, go: async () => afterRun() },
+            ],
+            true,
+          );
+        if (guided === 'stopped')
+          return ask(
+            'It asked rather than guessed. Here is how it learned to.',
+            [
+              { label: 'See how it got here', primary: true, go: toStart },
+              { label: 'Explore the finished brain', quiet: true, go: async () => afterRun() },
+            ],
+            true,
+          );
+        ask(
+          status === 'merged' ? 'That is what one block in the skyline is.' : status === 'needs_human' ? 'It asked rather than guessed.' : 'This run ended without a merge.',
+          [
+            { label: 'Another real run', primary: true, go: () => replay(pickRun()) },
+            { label: 'One where it stopped', go: () => replay(pickRun('needs_human')) },
+            { label: 'Back', quiet: true, go: async () => afterRun() },
+          ],
+          true,
+        );
+      }
+      /** What the event log says about a part, shown after its scene. */
+      const PROOF = STATS.cycles
+        ? {
+            motor: big(STATS.attempts) + ' attempts written across ' + big(STATS.cycles) + ' recorded runs.',
+            parietal: 'Rejected ' + big(STATS.boundaryCaught) + ' attempts that touched files outside their task.',
+            somatosensory: 'Failed ' + big(STATS.checksCaught) + ' attempts before a reviewer ever saw them.',
+            cingulate: big(STATS.reviews) + ' reviews: ' + big(STATS.reviews - STATS.sentBack - STATS.humanReview) + ' passed, ' + big(STATS.sentBack) + ' sent back, ' + STATS.humanReview + ' handed to a human.',
+            hippocampus: 'Recalled a lesson ' + big(STATS.recalled) + ' times and wrote ' + big(STATS.written) + ' new ones.',
+            brainstem: big(STATS.merged) + ' recorded merges, ' + Math.round((STATS.firstTry / STATS.merged) * 100) + '% on the first attempt. Median ' + span(STATS.medianMergeSeconds) + ' from start to main.',
+            reflex: big(STATS.stops) + ' recorded runs ended by stopping and asking a human.',
+            thalamus: 'Main moved under a finished change ' + STATS.refreshed + ' times. It rebuilt and rechecked every one.',
+            hypothalamus: STATS.quotaWaits + ' runs paused at a provider limit and picked up later.',
+          }
+        : {};
+
+      // ---------- projection
+      let yaw = 0;
+      const pitch = 0.06, YOFF = -0.14;
+      function turn(x, y, z, out) {
+        const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+        const x1 = x * cy + z * sy;
+        const z0 = -x * sy + z * cy;
+        const y0 = y - YOFF;
+        const y1 = y0 * cp - z0 * sp;
+        const z1 = y0 * sp + z0 * cp;
+        const s = 3.6 / (3.6 - z1);
+        out[0] = CX + x1 * UNIT * s;
+        out[1] = CY - y1 * UNIT * s;
+        out[2] = s;
+        return out;
+      }
+      const tmp = [0, 0, 0], qa = [0, 0, 0], qb = [0, 0, 0], qc = [0, 0, 0];
+      const px = new Float32Array(N), py = new Float32Array(N), ps = new Float32Array(N);
+      const bez = (a, c, b, t) => (1 - t) * (1 - t) * a + 2 * (1 - t) * t * c + t * t * b;
+      // Robot coordinates to device pixels.
+      const RX = (x) => CX + x * U;
+      const RY = (y) => FLOOR + y * U;
+      const HEAD = { x: -150, y: -96 };
+
+      function drawBrain() {
+        const nodes = graph.nodes;
+        // The whole brain as a faint promise, and each grown part in its own colour.
+        let at0 = 0;
+        for (let r = 0; r < REGIONS.length; r++) {
+          let end = at0;
+          while (end < cloud.length && cloud[end][3] === r) end++;
+          const c = RGB[r];
+          const g = partGrow[r];
+          const tint = partMood[r] === 'bad' ? [255, 93, 115] : c;
+          const k = partPulse[r];
+          const col = [0, 1, 2].map((i) => Math.round(c[i] + (tint[i] - c[i]) * k));
+          for (const near of [true, false]) {
+            const alpha = (near ? 0.7 : 0.2) * g * (0.75 + 1.3 * k) + (near ? 0.07 : 0.03) * (1 - g);
+            sx.fillStyle = g > 0.02 ? 'rgba(' + col[0] + ',' + col[1] + ',' + col[2] + ',' + Math.min(1, alpha) + ')' : 'rgba(150,125,200,' + alpha + ')';
+            sx.beginPath();
+            for (let i = at0; i < end; i++) {
+              const p = turn(cloud[i][0], cloud[i][1], cloud[i][2], tmp);
+              if (p[2] >= 1 !== near) continue;
+              const d = (near ? 1.9 : 1.4) * DPR * p[2];
+              sx.rect(p[0] - d / 2, p[1] - d / 2, d, d);
+            }
+            sx.fill();
+          }
+          at0 = end;
+        }
+        // Local fibres of grown parts.
+        sx.lineWidth = 0.6 * DPR;
+        sx.strokeStyle = 'rgba(160,130,220,0.07)';
+        sx.beginPath();
+        for (const e of graph.edges) {
+          if (e.tract || partGrow[nodes[e.a].region] < 0.6 || partGrow[nodes[e.b].region] < 0.6) continue;
+          sx.moveTo(px[e.a], py[e.a]);
+          sx.lineTo(px[e.b], py[e.b]);
+        }
+        sx.stroke();
+        // Pathways the agent has used: they stay, and thicken with use.
+        for (const path of paths.values()) {
+          if (path.strength <= 0) continue;
+          turn(path.p0[0], path.p0[1], path.p0[2], qa);
+          turn(path.p1[0], path.p1[1], path.p1[2], qb);
+          turn(path.pc[0], path.pc[1], path.pc[2], qc);
+          const k = Math.min(1, path.strength / 6);
+          const c = rgb(path.color);
+          sx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + (0.16 + 0.4 * k) + ')';
+          sx.lineWidth = (0.8 + 1.8 * k) * DPR;
+          sx.beginPath();
+          sx.moveTo(qa[0], qa[1]);
+          sx.quadraticCurveTo(qc[0], qc[1], qb[0], qb[1]);
+          sx.stroke();
+        }
+        // Neurons.
+        for (let i = 0; i < N; i++) {
+          const g = partGrow[nodes[i].region];
+          if (g <= 0.02) continue;
+          const a = act[i];
+          const size = (5 + a * 15) * DPR * ps[i] * g;
+          sx.globalAlpha = Math.min(1, g * (0.28 + a) * ps[i] * ps[i] * 0.8);
+          sx.drawImage(sprite(REGIONS[nodes[i].region].color), px[i] - size / 2, py[i] - size / 2, size, size);
+        }
+        sx.globalAlpha = 1;
+        for (const ring of rings) {
+          const p = turn(ring.p[0], ring.p[1], ring.p[2], tmp);
+          const k = ring.t / 0.9;
+          sx.globalAlpha = Math.max(0, 1 - k) * 0.9;
+          sx.strokeStyle = ring.color;
+          sx.lineWidth = 2.4 * DPR;
+          sx.beginPath();
+          sx.arc(p[0], p[1], (10 + 70 * k) * DPR, 0, Math.PI * 2);
+          sx.stroke();
+        }
+        sx.globalAlpha = 1;
+      }
+
+      function nerveEnds() {
+        const spine = turn(0.47, -1.2, 0, tmp);
+        return [spine[0], spine[1], RX(HEAD.x), RY(HEAD.y - 46)];
+      }
+      function drawSignals() {
+        sx.lineCap = 'round';
+        const [nx0, ny0, nx1, ny1] = nerveEnds();
+        const ncx = nx0 + (nx1 - nx0) * 0.15, ncy = ny1 - 30 * U;
+        // The nerve from the spinal cord to the robot.
+        sx.strokeStyle = 'rgba(214,180,230,0.3)';
+        sx.lineWidth = 1.4 * DPR;
+        sx.setLineDash([2 * DPR, 7 * DPR]);
+        sx.beginPath();
+        sx.moveTo(nx0, ny0);
+        sx.quadraticCurveTo(ncx, ncy, nx1, ny1);
+        sx.stroke();
+        sx.setLineDash([]);
+        for (const s of signals) {
+          let x, y, x0, y0;
+          const t = ease(Math.min(1, s.t)), tb = ease(Math.max(0, Math.min(1, s.t) - 0.22));
+          if (s.kind === 'nerve') {
+            x = bez(nx0, ncx, nx1, t);
+            y = bez(ny0, ncy, ny1, t);
+            x0 = bez(nx0, ncx, nx1, tb);
+            y0 = bez(ny0, ncy, ny1, tb);
+          } else {
+            turn(s.path.p0[0], s.path.p0[1], s.path.p0[2], qa);
+            turn(s.path.p1[0], s.path.p1[1], s.path.p1[2], qb);
+            turn(s.path.pc[0], s.path.pc[1], s.path.pc[2], qc);
+            x = bez(qa[0], qc[0], qb[0], t);
+            y = bez(qa[1], qc[1], qb[1], t);
+            x0 = bez(qa[0], qc[0], qb[0], tb);
+            y0 = bez(qa[1], qc[1], qb[1], tb);
+          }
+          sx.strokeStyle = s.color;
+          sx.lineWidth = 3.4 * DPR;
+          sx.beginPath();
+          sx.moveTo(x0, y0);
+          sx.lineTo(x, y);
+          sx.stroke();
+          const size = 34 * DPR;
+          sx.drawImage(sprite(s.color), x - size / 2, y - size / 2, size, size);
+        }
+      }
+
+      function box(x, y, w, h, rot, color, alpha, dashed) {
+        sx.save();
+        sx.translate(RX(x), RY(y));
+        sx.rotate(rot);
+        const c = rgb(color);
+        sx.globalAlpha = alpha;
+        sx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0.07)';
+        sx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0.9)';
+        sx.lineWidth = 1.3 * DPR;
+        if (dashed) sx.setLineDash([4 * DPR, 5 * DPR]);
+        sx.beginPath();
+        sx.roundRect((-w / 2) * U, (-h / 2) * U, w * U, h * U, 5 * U);
+        sx.fill();
+        sx.stroke();
+        sx.fillStyle = color;
+        sx.globalAlpha = alpha * (dashed ? 0.45 : 0.95);
+        const d = 2 * U;
+        for (let gx = -w / 2 + 5; gx <= w / 2 - 4; gx += 6) {
+          for (let gy = -h / 2 + 5; gy <= h / 2 - 4; gy += 6) sx.fillRect(gx * U - d / 2, gy * U - d / 2, d, d);
+        }
+        sx.restore();
+      }
+      // The robot is made of the brain's material: clouds of points, thin fibres, glowing joints.
+      function shell(w, h, r, fill) {
+        const pts = [];
+        const rand = (i) => {
+          const v = Math.sin(i * 127.1 + w * 3.7) * 43758.5453;
+          return v - Math.floor(v);
+        };
+        const per = 2 * (w + h);
+        for (let t = 0; t < per; t += 3.2) {
+          let x, y;
+          if (t < w) [x, y] = [t - w / 2, -h / 2];
+          else if (t < w + h) [x, y] = [w / 2, t - w - h / 2];
+          else if (t < 2 * w + h) [x, y] = [w / 2 - (t - w - h), h / 2];
+          else [x, y] = [-w / 2, h / 2 - (t - 2 * w - h)];
+          // Round the corners by pulling points near them inward.
+          const cx = Math.max(0, Math.abs(x) - (w / 2 - r)), cy = Math.max(0, Math.abs(y) - (h / 2 - r));
+          if (cx > 0 && cy > 0) {
+            const k = r / Math.hypot(cx, cy);
+            x = Math.sign(x) * (w / 2 - r + cx * k);
+            y = Math.sign(y) * (h / 2 - r + cy * k);
+          }
+          pts.push([x, y, 1]);
+        }
+        for (let i = 0; i < fill; i++) pts.push([(rand(i) - 0.5) * (w - 10), (rand(i + 99) - 0.5) * (h - 10), 0.45]);
+        return pts;
+      }
+      const BODY = shell(74, 48, 14, 70), SKULL = shell(56, 36, 13, 34), TREAD = shell(92, 16, 8, 14);
+      function dots(pts, x, y, rot, color, flicker) {
+        const c = Math.cos(rot), sn = Math.sin(rot), col = rgb(color), d = 2 * U;
+        for (const bright of [1, 0.45]) {
+          sx.fillStyle = 'rgba(' + col[0] + ',' + col[1] + ',' + col[2] + ',' + bright * flicker + ')';
+          sx.beginPath();
+          for (const p of pts) {
+            if (p[2] !== bright) continue;
+            sx.rect(RX(x + p[0] * c - p[1] * sn) - d / 2, RY(y + p[0] * sn + p[1] * c) - d / 2, d, d);
+          }
+          sx.fill();
+        }
+      }
+      function fibre(x0, y0, x1, y1, color) {
+        const col = rgb(color);
+        sx.strokeStyle = 'rgba(' + col[0] + ',' + col[1] + ',' + col[2] + ',0.85)';
+        sx.lineWidth = 1.3 * DPR;
+        const nx = -(y1 - y0), ny = x1 - x0, n = Math.hypot(nx, ny) || 1;
+        for (const off of [-3.2, 3.2]) {
+          sx.beginPath();
+          sx.moveTo(RX(x0 + (nx / n) * off), RY(y0 + (ny / n) * off));
+          sx.lineTo(RX(x1 + (nx / n) * off * 0.5), RY(y1 + (ny / n) * off * 0.5));
+          sx.stroke();
+        }
+        sx.fillStyle = color;
+        const len = Math.hypot(x1 - x0, y1 - y0), d = 2.2 * U;
+        for (let t = 8; t < len - 4; t += 9) sx.fillRect(RX(x0 + ((x1 - x0) * t) / len) - d / 2, RY(y0 + ((y1 - y0) * t) / len) - d / 2, d, d);
+      }
+      function glow(x, y, size, color) {
+        const k = size * U;
+        sx.drawImage(sprite(color), RX(x) - k / 2, RY(y) - k / 2, k, k);
+      }
+
+      function drawSky() {
+        if (!sky.on || sky.hide) return;
+        let color = '';
+        for (let i = 0; i < sky.count; i++) {
+          const d = skyDay[i], k = skyK[i];
+          const c = WEEK[Math.floor(d / 7) % WEEK.length];
+          if (c !== color) {
+            color = c;
+            sx.fillStyle = c;
+          }
+          const age = simT - (sky.t0 + (sky.dur * i) / MERGES.length);
+          const drop = age < 0.4 ? (1 - ease(Math.max(0, age) / 0.4)) * 260 : 0;
+          sx.globalAlpha = age < 0.4 ? 1 : 0.78;
+          sx.fillRect(RX(SKYX + d * PITCH + (k % 2) * 12.5), RY(-(Math.floor(k / 2) + 1) * SROW - drop), 11 * U, 5.4 * U);
+        }
+        sx.globalAlpha = 1;
+        sx.fillStyle = 'rgba(195,173,203,0.85)';
+        sx.font = (12 * U) / Math.min(1, cam.z) + 'px Recursive, sans-serif';
+        sx.textAlign = 'left';
+        for (const [d, text] of [[0, '17 Sep'], [14, '1 Oct'], [45, '1 Nov'], [54, '10 Nov']]) sx.fillText(text, RX(SKYX + d * PITCH), RY(26 / Math.min(1, cam.z)));
+      }
+      function drawBubble(lines, x, y) {
+        sx.font = 14 * U + 'px Recursive, sans-serif';
+        const w = Math.max(...lines.map((l) => sx.measureText(l).width)) + 24 * U;
+        const h = lines.length * 19 * U + 16 * U;
+        sx.fillStyle = 'rgba(24,10,30,0.92)';
+        sx.strokeStyle = '#ffe2a8';
+        sx.lineWidth = 1.6 * DPR;
+        sx.beginPath();
+        sx.roundRect(RX(x) - w / 2, RY(y) - h, w, h, 9 * U);
+        sx.fill();
+        sx.stroke();
+        sx.fillStyle = '#f6ecf7';
+        sx.textAlign = 'center';
+        lines.forEach((l, i) => sx.fillText(l, RX(x), RY(y) - h + (i + 1) * 19 * U + 2 * U));
+      }
+      function drawProps() {
+        const n = standing();
+        if (prop.other) {
+          for (let i = 0; i < 3; i++) box(TOWER + 118, -(i * BH + BH / 2), BW, BH - 3, 0, '#8d7896', 0.8, false);
+          sx.fillStyle = 'rgba(195,173,203,0.8)';
+          sx.font = 12 * U + 'px Recursive, sans-serif';
+          sx.textAlign = 'center';
+          sx.fillText('not in this task', RX(TOWER + 118), RY(20));
+        }
+        if (prop.barrier > 0.02) {
+          sx.strokeStyle = 'rgba(255,93,115,' + Math.min(1, prop.barrier * 1.5) + ')';
+          sx.lineWidth = 4 * DPR;
+          sx.beginPath();
+          sx.moveTo(RX(TOWER + 60), RY(-170));
+          sx.lineTo(RX(TOWER + 60), RY(-2));
+          sx.stroke();
+        }
+        if (prop.choice >= 0) {
+          const y = -(n * BH + BH / 2) - 30;
+          box(TOWER - 38, y, 50, BH - 3, 0, '#f3a0ff', prop.choice === 1 ? 1 : 0.6, prop.choice !== 1);
+          box(TOWER + 38, y, 50, BH - 3, 0, '#8d7896', prop.choice === 1 ? 0.3 : 0.6, true);
+        }
+        if (prop.zzz) {
+          sx.fillStyle = '#c3adcb';
+          sx.textAlign = 'left';
+          for (let i = 0; i < 3; i++) {
+            const k = (simT * 0.5 + i / 3) % 1;
+            sx.globalAlpha = 1 - k;
+            sx.font = (12 + i * 5) * U + 'px Recursive, sans-serif';
+            sx.fillText('z', RX(HEAD.x + 26 + k * 34), RY(HEAD.y - 34 - k * 52));
+          }
+          sx.globalAlpha = 1;
+        }
+        if (prop.bubble) {
+          const b = prop.bubble;
+          if (b.where === 'tower') drawBubble(b.lines, TOWER + 96, -(n * BH) - 44);
+          else if (b.where === 'left') drawBubble(b.lines, HEAD.x - 120, HEAD.y - 70);
+          else drawBubble(b.lines, HEAD.x - 130, HEAD.y - 40);
+        }
+      }
+
+      function drawRobot() {
+        const ink = '#e9dcf0';
+        sx.lineCap = 'round';
+        sx.lineJoin = 'round';
+        // Floor.
+        sx.strokeStyle = 'rgba(214,180,230,0.35)';
+        sx.lineWidth = 1.5 * DPR;
+        sx.beginPath();
+        sx.moveTo(RX(-330), RY(0));
+        sx.lineTo(RX(sky.on && !sky.hide ? SKYX + 55 * PITCH + 30 : 330), RY(0));
+        sx.stroke();
+        // What is already built: main.
+        blocks.forEach((b, i) => box(b.x, b.y, b.w, BH - 3, b.rot, prop.scan === i ? '#ffffff' : b.color, b.alpha, false));
+        drawSky();
+        drawProps();
+        const n = standing();
+        if (ghost.on) {
+          const color = ghost.mood === 'bad' ? '#ff5d73' : '#86f0b4';
+          box(TOWER + (ghost.tilt ? 20 : 0), -(n * BH + BH / 2) - 4, ghost.wide ? 112 : BW, BH - 3, ghost.tilt, color, 0.9, true);
+        }
+        // Body, head and eye.
+        const bob = Math.sin(simT * 2.2) * 1.5;
+        const breathe = 0.82 + 0.12 * Math.sin(simT * 3.1);
+        const tilt = Math.max(-0.16, Math.min(0.16, (robot.gx - HEAD.x - 120) / 900));
+        const skin = prop.off ? '#5b4a66' : '#cdbcff';
+        dots(TREAD, HEAD.x, -9, 0, '#8f78c4', 0.8);
+        for (const wx of [-30, 0, 30]) glow(HEAD.x + wx, -9, 9, '#8f78c4');
+        dots(BODY, HEAD.x, -42 + bob, 0, skin, breathe);
+        dots(SKULL, HEAD.x, HEAD.y - 10 + bob, tilt, skin, breathe);
+        // Antenna: where the nerve arrives.
+        sx.strokeStyle = 'rgba(205,188,255,0.8)';
+        sx.lineWidth = 1.3 * DPR;
+        sx.beginPath();
+        sx.moveTo(RX(HEAD.x), RY(HEAD.y - 28 + bob));
+        sx.lineTo(RX(HEAD.x), RY(HEAD.y - 46 + bob));
+        sx.stroke();
+        if (prop.off || prop.zzz) robot.eye = prop.off ? '#3a2a44' : '#6b5a78';
+        glow(HEAD.x - 9 + tilt * 30, HEAD.y - 11 + bob, 15 + robot.eyePulse * 20, robot.eye);
+        glow(HEAD.x + 9 + tilt * 30, HEAD.y - 11 + bob, 15 + robot.eyePulse * 20, robot.eye);
+        glow(HEAD.x, HEAD.y - 47 + bob, 10 * (1 + robot.eyePulse), robot.eye);
+        // Arm: two fibre bundles from the shoulder to the gripper, with a glowing node at each joint.
+        const sxp = HEAD.x + 36, syp = -52 + bob;
+        const dx = robot.gx - sxp, dy = robot.gy - syp;
+        const L1 = 140, L2 = 136;
+        const d = Math.min(L1 + L2 - 1, Math.max(L1 - L2 + 4, Math.hypot(dx, dy - 16)));
+        const base = Math.atan2(dy - 16, dx);
+        const bend = Math.acos(Math.max(-1, Math.min(1, (L1 * L1 + d * d - L2 * L2) / (2 * L1 * d))));
+        const ex = sxp + Math.cos(base - bend) * L1, ey = syp + Math.sin(base - bend) * L1;
+        fibre(sxp, syp, ex, ey, skin);
+        fibre(ex, ey, robot.gx, robot.gy - 16, skin);
+        glow(sxp, syp, 18, '#b79bff');
+        glow(ex, ey, 20, '#b79bff');
+        glow(robot.gx, robot.gy - 16, 16, robot.eye);
+        // Gripper.
+        sx.strokeStyle = 'rgba(205,188,255,0.9)';
+        sx.lineWidth = 1.5 * DPR;
+        sx.beginPath();
+        sx.moveTo(RX(robot.gx - 24), RY(robot.gy - 2));
+        sx.lineTo(RX(robot.gx - 24), RY(robot.gy - 16));
+        sx.lineTo(RX(robot.gx + 24), RY(robot.gy - 16));
+        sx.lineTo(RX(robot.gx + 24), RY(robot.gy - 2));
+        sx.stroke();
+        if (robot.held) box(robot.gx, robot.gy + BH / 2 - 2, robot.held.w, BH - 3, 0, robot.held.color, robot.held.alpha, false);
+        // The flag it raises when it stops and asks.
+        if (flag > 0) {
+          const fx = HEAD.x - 62, top = -30 - 92 * flag;
+          sx.strokeStyle = '#ffe2a8';
+          sx.lineWidth = 2.4 * DPR;
+          sx.beginPath();
+          sx.moveTo(RX(fx), RY(-4));
+          sx.lineTo(RX(fx), RY(top));
+          sx.stroke();
+          sx.fillStyle = 'rgba(255,226,168,' + 0.85 * flag + ')';
+          sx.beginPath();
+          sx.moveTo(RX(fx), RY(top));
+          sx.lineTo(RX(fx - 42), RY(top + 12));
+          sx.lineTo(RX(fx), RY(top + 24));
+          sx.fill();
+          if (flag > 0.95) {
+            sx.fillStyle = '#ffe2a8';
+            sx.font = '600 ' + 13 * U + 'px Recursive, sans-serif';
+            sx.textAlign = 'right';
+            sx.fillText('needs a human', RX(fx - 8), RY(top - 8));
+          }
+        }
+        // Labels: the robot's world is the repository.
+        sx.fillStyle = 'rgba(195,173,203,0.8)';
+        sx.font = 13 * U + 'px Recursive, sans-serif';
+        sx.textAlign = 'center';
+        sx.fillText('main', RX(TOWER), RY(20));
+        sx.fillText('the agent’s hands', RX(HEAD.x), RY(20));
+      }
+
+      // ---------- frame
+      const SPEED = params.has('fast') ? 6 : Number(params.get('speed') || 1);
+      let last = performance.now();
+      function frame(now) {
+        const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)) * SPEED;
+        last = now;
+        simT += dt;
+        yaw = reduced ? 0.2 : 0.2 + Math.sin(simT * 0.2) * 0.16;
+
+        for (let i = sleepers.length - 1; i >= 0; i--) {
+          if (sleepers[i].at <= simT) {
+            const s = sleepers.splice(i, 1)[0];
+            s.resolve();
+          }
+        }
+        for (let i = signals.length - 1; i >= 0; i--) {
+          const s = signals[i];
+          s.t += dt / s.dur;
+          if (s.t >= 1) {
+            signals.splice(i, 1);
+            if (s.path) s.path.strength += 1;
+            s.resolve();
+          }
+        }
+        // Robot arm, held block, loose blocks.
+        if (robot.dur > 0) {
+          const k = ease(Math.min(1, (simT - robot.t0) / robot.dur));
+          robot.gx = robot.fx + (robot.tx - robot.fx) * k;
+          robot.gy = robot.fy + (robot.ty - robot.fy) * k;
+        }
+        if (robot.held) robot.held.alpha = Math.min(1, robot.held.alpha + dt * 4);
+        robot.eyePulse *= Math.exp(-dt * 3);
+        for (const b of blocks) {
+          if (!b.loose) continue;
+          b.vy += 900 * dt;
+          b.x += b.vx * dt;
+          b.y += b.vy * dt;
+          b.rot += b.vr * dt;
+          if (b.y > -BH / 2) {
+            b.y = -BH / 2;
+            b.vy *= -0.3;
+            b.vx *= 0.6;
+            b.vr *= 0.5;
+            if (Math.abs(b.vy) < 20) b.rot += (Math.round(b.rot / Math.PI) * Math.PI - b.rot) * 0.3;
+          }
+        }
+        if (cam.dur > 0) {
+          const k = ease(Math.min(1, (simT - cam.t0) / cam.dur));
+          cam.x = cam.fx + (cam.tx - cam.fx) * k;
+          cam.y = cam.fy + (cam.ty - cam.fy) * k;
+          cam.z = cam.fz + (cam.tz - cam.fz) * k;
+        }
+        prop.barrier *= Math.exp(-dt * 2.5);
+        const fade = Math.exp(-dt * 4);
+        for (let i = 0; i < N; i++) act[i] *= fade;
+        for (let r = 0; r < REGIONS.length; r++) {
+          const target = grown.has(r) ? 1 : 0;
+          partGrow[r] += Math.sign(target - partGrow[r]) * Math.min(Math.abs(target - partGrow[r]), dt * 0.7);
+          partPulse[r] *= Math.exp(-dt * 1.6);
+          tagHold[r] = Math.max(0, tagHold[r] - dt);
+          // A grown part idles with a little activity of its own.
+          if (grown.has(r) && Math.random() < dt * 2.5) act[graph.members[r][Math.floor(Math.random() * graph.members[r].length)]] = 0.7;
+        }
+        for (const ring of rings) ring.t += dt;
+        rings = rings.filter((ring) => ring.t < 0.9);
+
+        for (let i = 0; i < N; i++) {
+          turn(graph.nodes[i].x, graph.nodes[i].y, graph.nodes[i].z, tmp);
+          px[i] = tmp[0];
+          py[i] = tmp[1];
+          ps[i] = tmp[2];
+        }
+        sx.setTransform(1, 0, 0, 1, 0, 0);
+        sx.globalCompositeOperation = 'source-over';
+        sx.globalAlpha = 1;
+        sx.clearRect(0, 0, W, H);
+        sx.setTransform(cam.z, 0, 0, cam.z, CX - cam.x * cam.z, H / 2 - cam.y * cam.z);
+        sx.globalCompositeOperation = 'lighter';
+        drawBrain();
+        drawSignals();
+        sx.globalCompositeOperation = 'source-over';
+        drawRobot();
+        sx.setTransform(1, 0, 0, 1, 0, 0);
+
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1;
+        const bg = ctx.createRadialGradient(CX, CY, 0, CX, CY, Math.max(W, H) * 0.75);
+        bg.addColorStop(0, '#2b1031');
+        bg.addColorStop(0.45, '#170a1c');
+        bg.addColorStop(1, '#08030a');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
+        const a = blurA.getContext('2d'), b = blurB.getContext('2d');
+        a.clearRect(0, 0, blurA.width, blurA.height);
+        a.drawImage(scene, 0, 0, blurA.width, blurA.height);
+        b.clearRect(0, 0, blurB.width, blurB.height);
+        b.drawImage(blurA, 0, 0, blurB.width, blurB.height);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.imageSmoothingQuality = 'high';
+        ctx.globalAlpha = 0.7;
+        ctx.drawImage(blurB, 0, 0, W, H);
+        ctx.globalAlpha = 0.8;
+        ctx.drawImage(blurA, 0, 0, W, H);
+        ctx.globalAlpha = 1;
+        ctx.drawImage(scene, 0, 0);
+
+        REGIONS.forEach((region, r) => {
+          const p = turn(region.label[0], region.label[1], region.label[2], tmp);
+          tags[r].style.opacity = grown.has(r) && tagHold[r] > 0 ? 1 : 0;
+          tags[r].style.transform = 'translate(' + (((p[0] - cam.x) * cam.z + CX) / DPR + 14) + 'px,' + (((p[1] - cam.y) * cam.z + H / 2) / DPR - 28) + 'px)';
+        });
+        requestAnimationFrame(frame);
+      }
+
+      function begin() {
+        reset();
+        intro().catch((e) => {
+          if (!(e instanceof Cancelled)) throw e;
+        });
+      }
+      document.getElementById('fact-merges').textContent = TOTAL;
+      document.getElementById('again').addEventListener('click', begin);
+      // Registered after resize(), so it runs once the stage has its new size.
+      addEventListener('resize', () => {
+        if (sky.on && !sky.hide) camWide(0.01);
+      });
+      canvas.addEventListener('mousemove', hoverSky);
+      canvas.addEventListener('mouseleave', () => (tipEl.style.opacity = 0));
+      canvas.addEventListener('click', (e) => {
+        const i = busy || sky.count < MERGES.length ? -1 : skyAt(e);
+        if (i < 0 || TRACE_OF[i] < 0) return;
+        const mine = runId;
+        replay(TRACE_OF[i]).catch((err) => {
+          if (!(err instanceof Cancelled) && mine === runId) throw err;
+        });
+      });
+      // The loop ring: five steps round, a way back when a check or review fails, a way out to a human.
+      const RING = { steps: ['pick', 'write', 'check', 'review', 'merge'], labels: ['Pick a task', 'Write', 'Check', 'Review', 'Merge'] };
+      const STEP_OF = {
+        thalamus: 'pick', wernicke: 'pick', prefrontal: 'pick', hippocampus: 'pick',
+        motor: 'write', parietal: 'check', somatosensory: 'check', cingulate: 'review', brainstem: 'merge', reflex: 'human',
+      };
+      (function drawRing() {
+        // A helix seen from one fixed side: every turn passes the same five stations, and each merge is one level up.
+        const cx = 125, top = 62, rx = 52, ry = 17, pitch = 13, turns = 6, ns = 'http://www.w3.org/2000/svg';
+        const svg = document.getElementById('ring-svg');
+        const el = (tag, attrs, parent, text) => {
+          const node = document.createElementNS(ns, tag);
+          for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+          if (text) node.textContent = text;
+          (parent || svg).appendChild(node);
+          return node;
+        };
+        // Travel runs with falling angle: Pick and Write on the left, Check and Review on the right, Merge at the back.
+        const ANG = { pick: 215, write: 145, check: 35, review: 325, merge: 270 };
+        const point = (deg, level) => {
+          const a = (deg * Math.PI) / 180;
+          return [cx + Math.cos(a) * rx, top + level * pitch + Math.sin(a) * ry];
+        };
+        // Older turns below, fainter the further down; the far side of each turn is fainter than the near side.
+        const stack = el('g', { id: 'ring-stack' });
+        const fresh = el('g', { id: 'ring-fresh', style: 'opacity: 0' });
+        for (let level = turns; level >= 0; level--) {
+          for (const near of [false, true]) {
+            const pts = [];
+            for (let i = 0; i <= 24; i++) {
+              const deg = (near ? 0 : 180) + (i / 24) * 180;
+              // Each turn climbs one pitch between the back centre (270) and the next back centre.
+              const climb = ((270 - deg + 360) % 360) / 360;
+              pts.push(point(deg, level + climb - (level === 0 ? climb : 0)).map((n) => n.toFixed(1)).join(' '));
+            }
+            const fade = level === 0 ? 1 : Math.max(0.22, 0.8 - level * 0.095);
+            el('path', { class: 'coil' + (level === 0 ? ' now' : ''), d: 'M' + pts.join(' L'), opacity: (fade * (near ? 1 : 0.5)).toFixed(2) }, stack);
+            if (level === 0) el('path', { d: 'M' + pts.join(' L'), opacity: near ? 1 : 0.6 }, fresh);
+          }
+        }
+        el('text', { class: 'levels', id: 'ring-levels', x: cx, y: top + turns * pitch + ry + 18 }, null, TOTAL + ' levels so far');
+        // Round again on the same level when a check or review fails.
+        const fix = el('g', { class: 'side', id: 'ring-fix' });
+        const [fx0, fy0] = point(ANG.review, 0), [fx1, fy1] = point(ANG.write, 0);
+        el('path', { d: 'M' + fx0.toFixed(1) + ' ' + (fy0 + 3).toFixed(1) + ' Q' + cx + ' ' + (top - 2) + ' ' + fx1.toFixed(1) + ' ' + (fy1 - 3).toFixed(1) }, fix);
+        el('text', { x: cx, y: top + 4, 'text-anchor': 'middle' }, fix, 'fix');
+        // Out to a person when it should not decide alone.
+        const human = el('g', { class: 'side', id: 'ring-human' });
+        const [hx, hy] = point(10, 0);
+        el('path', { d: 'M' + (hx + 3).toFixed(1) + ' ' + hy.toFixed(1) + ' Q' + (hx + 24) + ' ' + (hy + 10) + ' ' + (hx + 22) + ' ' + (hy + 34) }, human);
+        el('text', { x: hx + 22, y: hy + 47, 'text-anchor': 'middle' }, human, 'ask a human');
+        const place = { pick: [-9, -4, 'end'], write: [-9, 9, 'end'], check: [9, 9, 'start'], review: [9, -4, 'start'], merge: [0, -22, 'middle'] };
+        RING.steps.forEach((step, i) => {
+          const g = el('g', { class: 'node', id: 'ring-' + step });
+          const [x, y] = point(ANG[step], 0);
+          el('circle', { cx: x, cy: y, r: 4.5 }, g);
+          // Merge is the way up to the next level.
+          if (step === 'merge') el('path', { class: 'up', d: 'M' + x + ' ' + (y - 7) + ' V' + (y - 16) + ' M' + (x - 4) + ' ' + (y - 12) + ' L' + x + ' ' + (y - 17) + ' L' + (x + 4) + ' ' + (y - 12) }, g);
+          const [dx, dy, anchor] = place[step];
+          el('text', { x: x + dx, y: y + dy, 'text-anchor': anchor }, g, RING.labels[i]);
+        });
+      })();
+      /** Lights the ring for the brain part that just acted. */
+      function ringStep(id, mood) {
+        const step = STEP_OF[id];
+        if (!step) return;
+        const idx = RING.steps.indexOf(step);
+        RING.steps.forEach((name, i) => {
+          const node = document.getElementById('ring-' + name);
+          node.classList.toggle('on', i === idx);
+          node.classList.toggle('done', idx >= 0 && i < idx);
+        });
+        const failed = mood === 'bad' && (step === 'check' || step === 'review');
+        if (failed || step === 'write' || step === 'merge' || step === 'human') document.getElementById('ring-fix').classList.toggle('on', failed);
+        document.getElementById('ring-human').classList.toggle('on', step === 'human');
+        if (step === 'merge') ringMerge();
+      }
+      /** A merge: one more ring rises out of the top of the spiral, then the taller stack settles back into the frame. */
+      function ringMerge() {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const pitch = 13, timing = { duration: 1500, easing: 'cubic-bezier(0.3, 0.7, 0.2, 1)' };
+        document.getElementById('ring-fresh').animate(
+          [
+            { opacity: 0, transform: 'translateY(0)' },
+            { opacity: 1, transform: 'translateY(-' + pitch + 'px)', offset: 0.4 },
+            { opacity: 1, transform: 'translateY(-' + pitch + 'px)', offset: 0.55 },
+            { opacity: 1, transform: 'translateY(0)', offset: 0.9 },
+            { opacity: 0, transform: 'translateY(0)' },
+          ],
+          timing,
+        );
+        document.getElementById('ring-stack').animate(
+          [
+            { transform: 'translateY(0)' },
+            { transform: 'translateY(0)', offset: 0.55 },
+            { transform: 'translateY(' + pitch + 'px)', offset: 0.9 },
+            { transform: 'translateY(' + pitch + 'px)' },
+          ],
+          timing,
+        );
+      }
+      function ringClear() {
+        for (const node of document.querySelectorAll('#ring-svg .on, #ring-svg .done')) node.classList.remove('on', 'done');
+      }
+
+      // The about sheet: work, skills and experience, opened over the right side of the stage.
+      const sheetEl = document.getElementById('sheet'), sheetBody = document.getElementById('sheet-body');
+      const PROJECTS = { creator: 'Creator Assist', insights: 'Insights Capture', meetic: 'autoMeetic', ikea: 'ikea-mcp' };
+      function openSheet(view) {
+        for (const s of sheetBody.children) s.hidden = s.dataset.view !== view;
+        for (const b of document.querySelectorAll('[data-open]')) {
+          b.setAttribute(b.getAttribute('role') === 'tab' ? 'aria-selected' : 'aria-pressed', String(b.dataset.open === view));
+        }
+        sheetEl.classList.toggle('open', Boolean(view));
+        if (view) sheetBody.scrollTop = 0;
+      }
+      for (const b of document.querySelectorAll('[data-open]')) {
+        b.addEventListener('click', () => openSheet(b.getAttribute('aria-pressed') === 'true' ? '' : b.dataset.open));
+      }
+      document.getElementById('sheet-close').addEventListener('click', () => openSheet(''));
+      addEventListener('keydown', (e) => e.key === 'Escape' && openSheet(''));
+      for (const el of document.querySelectorAll('[data-total]')) el.textContent = TOTAL;
+      for (const el of document.querySelectorAll('[data-used]')) {
+        for (const key of el.dataset.used.split(' ')) {
+          const card = document.getElementById('p-' + key), b = document.createElement('button');
+          b.textContent = PROJECTS[key];
+          b.style.setProperty('--c', card.style.getPropertyValue('--c'));
+          b.addEventListener('click', () => {
+            openSheet('work');
+            for (const p of sheetBody.querySelectorAll('.proj')) p.classList.toggle('lit', p === card);
+            card.scrollIntoView({ block: 'start' });
+          });
+          el.append(b);
+        }
+      }
+      document.getElementById('watch-run').addEventListener('click', () => {
+        openSheet('');
+        reset();
+        REGIONS.forEach((_, r) => grown.add(r));
+        partGrow.fill(1);
+        count();
+        replay(runOf(FEATURED.merged), 'merged').catch((e) => {
+          if (!(e instanceof Cancelled)) throw e;
+        });
+      });
+      // A recorded run in which main moved under a finished change and the change was refreshed (TASK-PNM-1135).
+      document.getElementById('watch-refresh').addEventListener('click', () => {
+        openSheet('');
+        reset();
+        REGIONS.forEach((_, r) => grown.add(r));
+        partGrow.fill(1);
+        count();
+        replay(runOf('20261109T082911955Z')).catch((e) => {
+          if (!(e instanceof Cancelled)) throw e;
+        });
+      });
+      if (params.get('open')) openSheet(params.get('open'));
+
+      if (params.get('at')) {
+        reset();
+        if (params.get('at') === '1') level1();
+      } else begin();
+      // Test hooks: ?at=2|3|end jumps ahead, ?auto presses the first button whenever one appears, ?fast runs 6x.
+      const jump = params.get('at');
+      if (jump) {
+        if (jump >= '2' || jump === 'end') grown.add(INDEX.somatosensory);
+        if (jump >= '3' || jump === 'end') grown.add(INDEX.reflex);
+        if (jump === 'end') grown.add(INDEX.hippocampus);
+        partGrow.forEach((_, r) => (partGrow[r] = grown.has(r) ? 1 : 0));
+        count();
+        if (jump === '2') level2();
+        else if (jump === '3') level3();
+        else if (jump === 'end') finale();
+        else if (jump === 'explore') {
+          REGIONS.forEach((_, r) => grown.add(r));
+          partGrow.fill(1);
+          count();
+          level('Complete', 'This is the loop agent I built.', '');
+          explore();
+        }
+      }
+      // ?run=<cycleId> replays that recorded run in the finished brain; ?run picks one.
+      if (params.has('run')) {
+        const wanted = TRACES.findIndex((t) => t[0] === params.get('run'));
+        const guide = { featured: 'merged', stopped: 'stopped' }[params.get('run')];
+        replay(guide ? runOf(FEATURED[guide]) : wanted >= 0 ? wanted : pickRun(), guide).catch((e) => {
+          if (!(e instanceof Cancelled)) throw e;
+        });
+      }
+      if (params.has('auto')) setInterval(() => buttonsEl.querySelector('button')?.click(), 300);
+      requestAnimationFrame(frame);
+    </script>
+  </body>
+</html>

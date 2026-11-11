@@ -1,64 +1,396 @@
-<!DOCTYPE html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>MovingBird</title>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Taejin Jung</title>
+    <meta name="description" content="Taejin Jung, full-stack software engineer in Toronto. Loop engineering, desktop apps, and writing about how the agent I built is measured and made faster." />
+    <link rel="stylesheet" href="page.css" />
     <style>
-        img {
-            position: absolute;
+      /* This page only: a hero with the agent's brain, and the skyline of everything it merged. */
+      body {
+        background:
+          radial-gradient(60rem 38rem at 78% 14rem, rgba(122, 59, 143, 0.34), transparent 70%),
+          var(--bg);
+        background-repeat: no-repeat;
+      }
+      .top {
+        width: min(72rem, 100%);
+        margin: 0 auto;
+        padding: 1.6rem 1.25rem 0;
+      }
+      .top .site {
+        margin-bottom: 0;
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+        align-items: center;
+        gap: 1rem 2.5rem;
+        min-height: min(34rem, 78vh);
+        padding: 1.5rem 0 1rem;
+      }
+      .hero h1 {
+        font-size: clamp(2.1rem, 4.6vw, 3.6rem);
+        line-height: 1.06;
+      }
+      .hero .lede {
+        max-width: 33rem;
+      }
+      .hero .after {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.6rem 1.4rem;
+        margin-top: 1.6rem;
+      }
+      .hero .cta {
+        margin-top: 0;
+      }
+      .hero .after a:not(.cta) {
+        font-size: 0.95rem;
+        color: var(--soft);
+      }
+      .brain {
+        position: relative;
+        display: block;
+        text-decoration: none;
+        justify-self: stretch;
+      }
+      .brain canvas {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1.22;
+      }
+      .brain .now {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0.2rem;
+        text-align: center;
+        font-size: 0.86rem;
+        color: var(--c, var(--soft));
+        font-variation-settings: 'CASL' 0, 'MONO' 0.6;
+        transition: color 0.4s;
+      }
+      .brain .now small {
+        display: block;
+        margin-top: 0.15rem;
+        font-size: 0.76rem;
+        color: var(--faint);
+      }
+      .brain:focus-visible {
+        outline: 2px solid var(--hot);
+        outline-offset: 6px;
+        border-radius: 12px;
+      }
+      main {
+        padding-top: 1rem;
+      }
+      .sky {
+        margin: 1.5rem 0 0;
+      }
+      .sky svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+      }
+      .sky .axis {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.35rem;
+        padding-top: 0.35rem;
+        border-top: 1px solid var(--line);
+        font-size: 0.76rem;
+        color: var(--faint);
+        font-variation-settings: 'CASL' 0, 'MONO' 0.6;
+      }
+      .sky figcaption {
+        margin-top: 0.8rem;
+        font-size: 0.95rem;
+        color: var(--soft);
+      }
+      .sky figcaption b {
+        color: var(--hot);
+        font-weight: 800;
+        font-variation-settings: 'CASL' 0, 'MONO' 0.6;
+      }
+      .entry h3 a[style] {
+        color: var(--c);
+        text-decoration-color: color-mix(in srgb, var(--c) 40%, transparent);
+      }
+      .entry h3 a[style]:hover,
+      .entry h3 a[style]:focus-visible {
+        color: var(--hot);
+      }
+      @media (max-width: 820px) {
+        .hero {
+          grid-template-columns: 1fr;
+          min-height: 0;
+          padding-top: 0.5rem;
         }
-
-        .vod {
-            position: absolute;
+        .brain {
+          order: -1;
+          width: min(26rem, 100%);
+          margin: 0 auto;
         }
-
-
+        body {
+          background:
+            radial-gradient(34rem 24rem at 50% 12rem, rgba(122, 59, 143, 0.34), transparent 70%),
+            var(--bg);
+          background-repeat: no-repeat;
+        }
+      }
     </style>
+  </head>
+  <body>
+    <header class="top">
+      <nav class="site">
+        <a class="me" href="index.html">Taejin Jung</a>
+        <a href="#work">Work</a>
+        <a href="#writing">Writing</a>
+        <a href="#experience">Experience</a>
+        <a href="resume.html">Résumé</a>
+        <a href="https://github.com/taejin5314">GitHub</a>
+        <a href="https://www.linkedin.com/in/taejin-jung-0abb42114">LinkedIn</a>
+      </nav>
+
+      <div class="hero">
+        <div>
+          <h1>I build AI agents that work on their own, and stop when they should.</h1>
+          <p class="lede">
+            I’m a full-stack software engineer in Toronto. For four years I have built Insights Capture, a desktop app for recording and
+            reviewing gameplay. On my own time I do loop engineering: I built a system that keeps coding agents shipping approved tasks
+            unattended.
+          </p>
+          <div class="after">
+            <a class="cta" href="agent.html">Watch the agent run</a>
+            <a href="#writing">Read how I measure it</a>
+          </div>
+        </div>
+        <a class="brain" href="agent.html" aria-label="The agent drawn as a brain: each part is one part of the system. Open it and replay a real run.">
+          <canvas id="brain"></canvas>
+          <div class="now" id="now" aria-hidden="true">&nbsp;<small>one task, passing through the agent</small></div>
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <figure class="sky">
+        <svg id="sky" role="img" aria-label="A column for every day from 17 September to 10 November 2026, one block for each change the agent merged that day."></svg>
+        <div class="axis"><span>17 Sep</span><span>1 Oct</span><span>1 Nov</span><span>10 Nov 2026</span></div>
+        <figcaption><b id="total">1,005</b> changes merged by the agent, one block each. <a href="agent.html">Replay any of them from its log.</a></figcaption>
+      </figure>
+
+      <h2 id="work">Work</h2>
+      <div class="entry">
+        <div class="when">2026</div>
+        <div>
+          <h3><a href="agent.html" style="--c: #ffd98a">Creator Assist</a></h3>
+          <p>
+            Loop engineering. An orchestrator that picks an approved task, has an agent write it, runs eight checks, sends the diff to an
+            independent verifier, fixes what comes back and merges. 1,005 changes merged by the agent, and 354 times it stopped and asked
+            a person.
+          </p>
+          <p class="tags">TypeScript, Claude Code, Codex, GitHub Actions, Python · <a href="https://github.com/taejin5314/claude-codex-loop-engineering">source</a></p>
+        </div>
+      </div>
+      <div class="entry">
+        <div class="when">2021 – now</div>
+        <div>
+          <h3><a href="https://insights.gg" style="--c: #7fd4ff">Insights Capture</a></h3>
+          <p>
+            Gameplay recording, highlight detection and team video review, on a platform with 140K+ daily active users. I helped rebuild
+            it as a standalone V3 release without Overwolf.
+          </p>
+          <p class="tags">Electron, TypeScript, React, Node.js, REST APIs</p>
+        </div>
+      </div>
+      <div class="entry">
+        <div class="when">2026</div>
+        <div>
+          <h3><a href="https://github.com/taejin5314/autoMeetic" style="--c: #86f0b4">autoMeetic</a></h3>
+          <p>
+            A real-time meeting copilot for the desktop: live captions and translation, whiteboard diagrams drawn as people talk, and a
+            memory of past meetings you can ask questions of.
+          </p>
+          <p class="tags">Electron, React, TypeScript, OpenAI Realtime API, SQLite, on-device embeddings</p>
+        </div>
+      </div>
+      <div class="entry">
+        <div class="when">2026</div>
+        <div>
+          <h3><a href="https://github.com/taejin5314/ikea-mcp" style="--c: #b79bff">ikea-mcp</a></h3>
+          <p>
+            An open-source MCP server, published on npm, that lets an AI assistant search IKEA products, check stock and find the best
+            store for a whole cart. An outside contributor added Norway.
+          </p>
+          <p class="tags">TypeScript, Model Context Protocol, Node.js · <a href="https://www.npmjs.com/package/ikea-mcp">npm</a></p>
+        </div>
+      </div>
+
+      <h2 id="writing">Writing</h2>
+      <div class="entry">
+        <div class="when">Nov 2026</div>
+        <div>
+          <h3><a href="writing/measuring-the-reviewer.html">I measured my agent’s code reviewer before I trusted it</a></h3>
+          <p>A second, independent review took the agent from 11 of 26 known defects to 15. Running the same reviewer twice differed by 19 points, and that changed how I measure everything.</p>
+        </div>
+      </div>
+      <div class="entry">
+        <div class="when">Nov 2026</div>
+        <div>
+          <h3><a href="writing/keeping-finished-work.html">A third of my agent’s time was rework. I did not add more agents.</a></h3>
+          <p>Where the time went in a working session, the three options I weighed, and what 96 carried-forward changes looked like a month later.</p>
+        </div>
+      </div>
+
+      <h2 id="experience">Experience</h2>
+      <div class="entry">
+        <div class="when">2022 – now</div>
+        <div>
+          <h3>Software Engineer, Insights.gg</h3>
+          <p>Features for Insights Capture from requirements to release, the REST APIs between the desktop client and the backend, and performance and crash fixes in video processing.</p>
+        </div>
+      </div>
+      <div class="entry">
+        <div class="when">2021 – 2022</div>
+        <div>
+          <h3>Junior Full Stack Developer, Insights.gg</h3>
+          <p>Web and desktop features in React and Electron.</p>
+        </div>
+      </div>
+      <div class="entry">
+        <div class="when">2016 – 2019</div>
+        <div>
+          <h3>Apprentice Electrician, Ace Electric</h3>
+          <p>You test a circuit before you energise it. The checks and the kill switch in the agent come from the same habit.</p>
+        </div>
+      </div>
+      <div class="entry">
+        <div class="when">Education</div>
+        <div>
+          <h3>Lighthouse Labs and Seneca Polytechnic</h3>
+          <p>Diploma in Full Stack Web Development, and diploma as an Electronics Engineering Technician.</p>
+        </div>
+      </div>
+
+      <p class="next">
+        <a href="mailto:taejin5314@gmail.com">taejin5314@gmail.com</a> · <a href="resume.html">One-page résumé</a> ·
+        <a href="agent.html">The agent, replayed from its own log</a>
+      </p>
+    </main>
+
+    <script src="merges.js"></script>
+    <script src="sim.js"></script>
     <script>
-        let x = 0;
-        let y = 0;
-        let mx = 0;
-        let my = 0;
-        let speed = 0.009;
-        let _imgArr;
-        let _bird;
+      'use strict';
+      /* global NeuralSim */
+      // ---------- the skyline: one block per merge, a column per day, a colour per week (as on the agent's page)
+      (function skyline() {
+        const merges = window.MERGES || [];
+        const WEEK = ['#ffd98a', '#ff8f66', '#86f0b4', '#7fd4ff', '#b79bff', '#ff7fb8', '#6fe3e0', '#f3a0ff'];
+        const days = Math.max(0, ...merges.map((m) => m[0])) + 1, perDay = new Array(days).fill(0);
+        const pitch = 27, row = 7;
+        let peak = 0, body = '';
+        for (const m of merges) {
+          const d = m[0], k = perDay[d]++;
+          peak = Math.max(peak, Math.floor(k / 2) + 1);
+          body += '<rect x="' + (d * pitch + (k % 2) * 12.5) + '" y="' + -(Math.floor(k / 2) + 1) * row + '" width="11" height="5.4" rx="1" fill="' + WEEK[Math.floor(d / 7) % WEEK.length] + '"/>';
+        }
+        const svg = document.getElementById('sky');
+        svg.setAttribute('viewBox', '0 ' + -peak * row + ' ' + (days * pitch - 3.5) + ' ' + peak * row);
+        svg.innerHTML = body;
+        document.getElementById('total').textContent = merges.length.toLocaleString('en');
+      })();
 
-        window.onload = function() {
-            _imgArr = document.getElementsByTagName("img");
-            _bird = document.getElementsByTagName('div')[0];
-            // alert(_imgArr.length)
-            window.addEventListener('mousemove', mouseFunc, false)
-
-            function mouseFunc(e) {
-                x = (e.clientX - window.innerWidth / 2);
-                y = (e.clientY - window.innerHeight / 2);
+      // ---------- the brain: the same point cloud as the agent's page, with one task passing through it
+      (function brain() {
+        const { createCloud, REGIONS, INDEX } = NeuralSim;
+        const cloud = createCloud(18);
+        const canvas = document.getElementById('brain'), ctx = canvas.getContext('2d'), nowEl = document.getElementById('now');
+        const label = nowEl.firstChild;
+        const ROUTE = [
+          ['wernicke', 'Takes the directive'],
+          ['thalamus', 'Starts the run'],
+          ['prefrontal', 'Picks one task'],
+          ['hippocampus', 'Recalls past lessons'],
+          ['motor', 'Writes the change'],
+          ['parietal', 'Checks the file boundary'],
+          ['somatosensory', 'Runs eight checks'],
+          ['cingulate', 'A different model reviews it'],
+          ['brainstem', 'Merges'],
+        ];
+        const rgb = REGIONS.map((r) => [1, 3, 5].map((i) => parseInt(r.color.slice(i, i + 2), 16)));
+        const glow = new Float32Array(REGIONS.length);
+        const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let W = 0, H = 0, dpr = 1, yawTo = 0, pitchTo = 0.06, yaw = 0, pitch = 0.06, stepAt = -1, step = -1, last = performance.now(), clock = 0;
+        function size() {
+          dpr = Math.min(window.devicePixelRatio || 1, 2);
+          W = canvas.width = Math.round(canvas.clientWidth * dpr);
+          H = canvas.height = Math.round(canvas.clientHeight * dpr);
+        }
+        addEventListener('resize', size);
+        size();
+        addEventListener('pointermove', (e) => {
+          const r = canvas.getBoundingClientRect();
+          yawTo = Math.max(-0.5, Math.min(0.5, ((e.clientX - (r.left + r.width / 2)) / innerWidth) * 1.1));
+          pitchTo = 0.06 + Math.max(-0.2, Math.min(0.2, ((e.clientY - (r.top + r.height / 2)) / innerHeight) * 0.5));
+        });
+        function draw(now) {
+          const dt = Math.min(0.05, (now - last) / 1000);
+          last = now;
+          clock += dt;
+          // One task moves through the route, a stop every 0.95 s, with a breath after the merge.
+          const beat = Math.floor(clock / 0.95) % (ROUTE.length + 2);
+          if (beat !== stepAt) {
+            stepAt = beat;
+            step = beat < ROUTE.length ? beat : -1;
+            if (step >= 0) {
+              const r = INDEX[ROUTE[step][0]];
+              glow[r] = 1;
+              label.textContent = ROUTE[step][1];
+              nowEl.style.setProperty('--c', REGIONS[r].color);
+            } else if (beat === ROUTE.length) {
+              label.textContent = 'and picks the next one';
+              nowEl.style.setProperty('--c', '');
             }
-            loop();
+          }
+          yaw += (yawTo + 0.16 * Math.sin(clock * 0.35) - yaw) * Math.min(1, dt * 3);
+          pitch += (pitchTo - pitch) * Math.min(1, dt * 3);
+          const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+          const unit = Math.min(W / 3.05, H / 2.35), cx = W / 2, mid = H * 0.5;
+          ctx.clearRect(0, 0, W, H);
+          ctx.globalCompositeOperation = 'lighter';
+          let i = 0;
+          for (let r = 0; r < REGIONS.length; r++) {
+            const c = rgb[r], k = glow[r];
+            for (const near of [false, true]) {
+              ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + Math.min(1, (near ? 0.85 : 0.3) * (0.8 + 1.6 * k)) + ')';
+              ctx.beginPath();
+              for (let j = i; j < cloud.length && cloud[j][3] === r; j++) {
+                const p = cloud[j];
+                const x1 = p[0] * cy + p[2] * sy, z0 = -p[0] * sy + p[2] * cy, y0 = p[1] + 0.14;
+                const y1 = y0 * cp - z0 * sp, z1 = y0 * sp + z0 * cp;
+                if (z1 > 0 !== near) continue;
+                const s = 3.6 / (3.6 - z1), d = (near ? 2 : 1.5) * s * dpr * (1 + 0.5 * k);
+                ctx.rect(cx + x1 * unit * s - d / 2, mid - y1 * unit * s - d / 2, d, d);
+              }
+              ctx.fill();
+            }
+            while (i < cloud.length && cloud[i][3] === r) i++;
+            glow[r] *= Math.exp(-dt * 1.5);
+          }
+          ctx.globalCompositeOperation = 'source-over';
+          if (!still) requestAnimationFrame(draw);
         }
-        function loop() {
-            // console.log(x , y);
-            mx += (x - mx) * speed;
-            my += (y - my) * speed;
-            _imgArr[0].style.transform = "translate(" + -(mx/6) + "px," + -(my/6) + "px)";
-            _imgArr[1].style.transform = "translate(" + -(mx/5) + "px," + -(my/5) + "px)";
-            _imgArr[2].style.transform = "translate(" + -(mx/3) + "px," + -(my/3) + "px)";
-            _imgArr[3].style.transform = "translate(" + -(mx/1) + "px," + -(my/1) + "px)";
-
-            _bird.style.transform = "translate(" + -(mx/5) + "px," + -(my/5) + "px)";
-            window.requestAnimationFrame(loop);
+        if (still) {
+          label.textContent = 'Each part is one part of the system';
+          for (const [id] of ROUTE) glow[INDEX[id]] = 0.5;
         }
-        
+        requestAnimationFrame(draw);
+      })();
     </script>
-</head>
-<body>
-    <section>
-        <img src="https://paidpost-assets.nyt.com/paidpost/allbirds/birds-eye-view/images/1-b90e91a4.png"/>
-        <img src="https://paidpost-assets.nyt.com/paidpost/allbirds/birds-eye-view/images/2-f3fd6cf5.png">
-        <div class="vod"><video autoplay="" muted="" playsinline="" loop="" src="https://paidpost-assets.nyt.com/paidpost/allbirds/birds-eye-view/videos/3-27c8c3ea.webm"></video></div>
-        <img src="https://paidpost-assets.nyt.com/paidpost/allbirds/birds-eye-view/images/4-105dd65b.png">
-        <img src="https://paidpost-assets.nyt.com/paidpost/allbirds/birds-eye-view/images/5-ac49bfdc.png">
-    </section>
-</body>
+  </body>
 </html>
