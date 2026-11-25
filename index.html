@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Taejin Jung</title>
     <meta name="description" content="Taejin Jung, full-stack software engineer in Toronto. Loop engineering, desktop apps, and writing about how the agent I built is measured and made faster." />
+    <link rel="canonical" href="https://taejin5314.github.io/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://taejin5314.github.io/" />
+    <meta property="og:title" content="Taejin Jung: I build AI agents that work on their own, and stop when they should" />
+    <meta property="og:description" content="Full-stack software engineer in Toronto. Loop engineering: an agent that has merged 1,005 changes by itself. Replay its real runs." />
+    <meta property="og:image" content="https://taejin5314.github.io/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="627" />
+    <meta property="og:image:alt" content="The agent drawn as a brain, with every change it merged stacked beside it" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="stylesheet" href="page.css" />
     <style>
       /* This page only: a hero with the agent's brain, and the skyline of everything it merged. */
@@ -51,33 +61,87 @@
         font-size: 0.95rem;
         color: var(--soft);
       }
+      .stage {
+        justify-self: stretch;
+      }
       .brain {
-        position: relative;
         display: block;
         text-decoration: none;
-        justify-self: stretch;
       }
       .brain canvas {
         display: block;
         width: 100%;
         aspect-ratio: 1.22;
       }
-      .brain .now {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0.2rem;
-        text-align: center;
-        font-size: 0.86rem;
-        color: var(--c, var(--soft));
-        font-variation-settings: 'CASL' 0, 'MONO' 0.6;
-        transition: color 0.4s;
+      .run {
+        margin: 0.6rem 0 0;
+        font-size: 0.8rem;
+        line-height: 1.55;
+        font-variation-settings: 'CASL' 0, 'MONO' 0.8;
       }
-      .brain .now small {
-        display: block;
-        margin-top: 0.15rem;
-        font-size: 0.76rem;
+      .run figcaption {
+        margin-bottom: 0.35rem;
         color: var(--faint);
+        font-variation-settings: 'CASL' 0.2, 'MONO' 0;
+      }
+      .run ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .run li {
+        display: grid;
+        grid-template-columns: 3.4rem 1fr;
+        margin: 0;
+        color: var(--faint);
+        opacity: 0.8;
+        transition: color 0.3s, opacity 0.3s;
+      }
+      .run li[data-s='done'] {
+        color: var(--soft);
+        opacity: 1;
+      }
+      .run li[data-s='now'] {
+        color: var(--c, var(--ink));
+        opacity: 1;
+      }
+      .run li[data-bad]:is([data-s='done'], [data-s='now']) span {
+        color: #ff9c8a;
+      }
+      .run li:last-child:is([data-s='done'], [data-s='now']) span {
+        color: var(--good);
+        font-weight: 700;
+      }
+      .about {
+        color: var(--soft);
+      }
+      .practice .when {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: var(--c);
+        font-weight: 700;
+        font-variation-settings: 'CASL' 0.4, 'MONO' 0;
+      }
+      .practice .when::before {
+        content: '';
+        display: inline-block;
+        width: 0.5rem;
+        height: 0.5rem;
+        margin-right: 0.45rem;
+        border-radius: 50%;
+        background: var(--c);
+        box-shadow: 0 0 10px var(--c);
+      }
+      .about + .entry {
+        margin-top: 0.8rem;
+      }
+      .case-title {
+        margin: 0.6rem 0 0;
+        font-size: 1.5rem;
+        line-height: 1.2;
+        font-weight: 760;
+        font-variation-settings: 'CASL' 0.8, 'MONO' 0;
+        text-wrap: balance;
       }
       .brain:focus-visible {
         outline: 2px solid var(--hot);
@@ -130,8 +194,7 @@
           min-height: 0;
           padding-top: 0.5rem;
         }
-        .brain {
-          order: -1;
+        .stage {
           width: min(26rem, 100%);
           margin: 0 auto;
         }
@@ -148,6 +211,8 @@
     <header class="top">
       <nav class="site">
         <a class="me" href="index.html">Taejin Jung</a>
+        <a href="#practice">Practice</a>
+        <a href="#case">Case study</a>
         <a href="#work">Work</a>
         <a href="#writing">Writing</a>
         <a href="#experience">Experience</a>
@@ -169,10 +234,25 @@
             <a href="#writing">Read how I measure it</a>
           </div>
         </div>
-        <a class="brain" href="agent.html" aria-label="The agent drawn as a brain: each part is one part of the system. Open it and replay a real run.">
-          <canvas id="brain"></canvas>
-          <div class="now" id="now" aria-hidden="true">&nbsp;<small>one task, passing through the agent</small></div>
-        </a>
+        <div class="stage">
+          <a class="brain" href="agent.html?at=explore&amp;run=featured" aria-label="The agent drawn as a brain: each part is one part of the system. It is replaying the run listed below. Open it to replay any run.">
+            <canvas id="brain"></canvas>
+          </a>
+          <figure class="run" id="run">
+            <figcaption>One real run from the event log, 7 Nov 2026. The brain above is replaying it.</figcaption>
+            <ol>
+              <li data-part="thalamus"><time>00:00</time><span>run started</span></li>
+              <li data-part="hippocampus"><time>02:59</time><span>recalled lessons from earlier runs</span></li>
+              <li data-part="prefrontal"><time>03:00</time><span>picked one approved task</span></li>
+              <li data-part="motor"><time>03:01</time><span>attempt 1: wrote the change</span></li>
+              <li data-part="somatosensory" data-bad><time>09:02</time><span>a check failed</span></li>
+              <li data-part="motor"><time>09:02</time><span>attempt 2: read the failure and fixed it</span></li>
+              <li data-part="somatosensory"><time>13:43</time><span>every check passed</span></li>
+              <li data-part="cingulate"><time>13:43</time><span>a different model reviewed the diff and passed it</span></li>
+              <li data-part="brainstem"><time>13:48</time><span>merged as pull request #1754</span></li>
+            </ol>
+          </figure>
+        </div>
       </div>
     </header>
 
@@ -182,6 +262,113 @@
         <div class="axis"><span>17 Sep</span><span>1 Oct</span><span>1 Nov</span><span>10 Nov 2026</span></div>
         <figcaption><b id="total">1,005</b> changes merged by the agent, one block each. <a href="agent.html">Replay any of them from its log.</a></figcaption>
       </figure>
+
+      <h2 id="practice">How I engineer agents</h2>
+      <p class="about">Seven things a team asks of anyone who ships agents, each with what I built and a number from the event log.</p>
+      <div class="entry practice" style="--c: #ff7fb8">
+        <div class="when">Evals</div>
+        <div>
+          <h3>I measured the reviewer before I trusted it.</h3>
+          <p>Twelve real changes with 26 known defects. The loop as it was found 11, adding a second, independent reviewer found 15, and the same reviewer run twice differed by 19 points. I rebuilt the experiment as a command with a fixed answer key that the agent cannot edit.</p>
+          <p class="tags"><a href="writing/measuring-the-reviewer.html">The write-up</a></p>
+        </div>
+      </div>
+      <div class="entry practice" style="--c: #ffb37a">
+        <div class="when">Verification</div>
+        <div>
+          <h3>Nothing merges on the model’s word.</h3>
+          <p>Eight checks run on every attempt, then a different model reviews the diff. The checks failed 360 attempts before a reviewer saw them, and 392 of 1,436 reviews sent the change back.</p>
+          <p class="tags"><a href="agent.html?at=explore">The checks and the reviewer, in the brain</a></p>
+        </div>
+      </div>
+      <div class="entry practice" style="--c: #ffd98a">
+        <div class="when">Guardrails</div>
+        <div>
+          <h3>Each task has a boundary, and the agent cannot widen it.</h3>
+          <p>A task names the files it may touch. 315 attempts that reached outside were rejected. Changes that add network calls or read credentials stop for a person, a change to a protected file is refused, and a kill switch stops the loop when the same failure keeps coming back.</p>
+          <p class="tags"><a href="agent.html?at=explore">The boundary and the kill switch</a></p>
+        </div>
+      </div>
+      <div class="entry practice" style="--c: #6fe3e0">
+        <div class="when">Memory</div>
+        <div>
+          <h3>The agent writes down what it learned, and reads it next time.</h3>
+          <p>A shared memory of lessons from earlier runs, searched at the start of each one. It has written 469 lessons and recalled lessons 6,772 times.</p>
+          <p class="tags"><a href="agent.html?at=explore">Memory, in the brain</a></p>
+        </div>
+      </div>
+      <div class="entry practice" style="--c: #fff0c8">
+        <div class="when">Orchestration</div>
+        <div>
+          <h3>One loop, durable state, and a person only when it asks.</h3>
+          <p>2,161 attempts across 1,302 recorded runs. 69% of merged changes passed on the first attempt, and the median run took 9 minutes 36 seconds from start to <code>main</code>.</p>
+          <p class="tags"><a href="agent.html">Replay any run</a></p>
+        </div>
+      </div>
+      <div class="entry practice" style="--c: #b79bff">
+        <div class="when">Workflow</div>
+        <div>
+          <h3>The agent that wrote a change never approves it.</h3>
+          <p>My own sessions with an agent follow a written playbook. The goal and the smallest change that meets it are stated first. One agent builds one unit of work. A second agent that did not write it runs the change against its parent and posts a verdict, and only a passed change merges. I added a budget of about 120 tool calls per agent after measuring that sub-agents were 86% of token use, and that four runs of 100 calls cost about a quarter of one run of 400.</p>
+        </div>
+      </div>
+      <div class="entry practice" style="--c: #ffa3a3">
+        <div class="when">Cost</div>
+        <div>
+          <h3>A budget is part of the design.</h3>
+          <p>A merged change costs about $0.61 of model usage at the median, measured over 117 runs. A run that meets a provider limit pauses and picks up later, which has happened 13 times.</p>
+        </div>
+      </div>
+
+      <h2 id="case">Case study</h2>
+      <h3 class="case-title">A third of the agent’s time was rework. I did not add more agents.</h3>
+      <p>
+        When <code>main</code> moved during a run, a finished, reviewed change had to start over. I measured it first: 4 of 15 runs over
+        two days, 32% of the session’s time.
+      </p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Option</th>
+              <th>What it costs</th>
+              <th>What it gains</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Add more agents</td>
+              <td>More parallel runs meeting on <code>main</code></td>
+              <td>About 1.2× throughput</td>
+            </tr>
+            <tr>
+              <td>Keep restarting</td>
+              <td>Nothing to build</td>
+              <td>Nothing</td>
+            </tr>
+            <tr class="pick">
+              <td>Carry the change forward</td>
+              <td>Rebuild on the new <code>main</code>, rerun every check, reuse the review only for an identical patch</td>
+              <td>The finished work is kept</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <dl class="figures">
+        <div>
+          <dt>96</dt>
+          <dd>changes carried forward in the month after</dd>
+        </div>
+        <div>
+          <dt>96 of 96</dt>
+          <dd>reviews still valid for the rebuilt patch</dd>
+        </div>
+        <div>
+          <dt>90 of 91</dt>
+          <dd>runs that carried a change forward merged</dd>
+        </div>
+      </dl>
+      <p><a href="writing/keeping-finished-work.html">Read the full write-up, with the timing table.</a></p>
 
       <h2 id="work">Work</h2>
       <div class="entry">
@@ -309,19 +496,8 @@
       (function brain() {
         const { createCloud, REGIONS, INDEX } = NeuralSim;
         const cloud = createCloud(18);
-        const canvas = document.getElementById('brain'), ctx = canvas.getContext('2d'), nowEl = document.getElementById('now');
-        const label = nowEl.firstChild;
-        const ROUTE = [
-          ['wernicke', 'Takes the directive'],
-          ['thalamus', 'Starts the run'],
-          ['prefrontal', 'Picks one task'],
-          ['hippocampus', 'Recalls past lessons'],
-          ['motor', 'Writes the change'],
-          ['parietal', 'Checks the file boundary'],
-          ['somatosensory', 'Runs eight checks'],
-          ['cingulate', 'A different model reviews it'],
-          ['brainstem', 'Merges'],
-        ];
+        const canvas = document.getElementById('brain'), ctx = canvas.getContext('2d'), lines = [...document.querySelectorAll('#run li')];
+        const ROUTE = lines.map((li) => li.dataset.part);
         const rgb = REGIONS.map((r) => [1, 3, 5].map((i) => parseInt(r.color.slice(i, i + 2), 16)));
         const glow = new Float32Array(REGIONS.length);
         const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -342,20 +518,17 @@
           const dt = Math.min(0.05, (now - last) / 1000);
           last = now;
           clock += dt;
-          // One task moves through the route, a stop every 0.95 s, with a breath after the merge.
+          // The run moves through its log, a line every 0.95 s, with a breath after the merge.
           const beat = Math.floor(clock / 0.95) % (ROUTE.length + 2);
-          if (beat !== stepAt) {
+          if (!still && beat !== stepAt) {
             stepAt = beat;
             step = beat < ROUTE.length ? beat : -1;
             if (step >= 0) {
-              const r = INDEX[ROUTE[step][0]];
+              const r = INDEX[ROUTE[step]];
               glow[r] = 1;
-              label.textContent = ROUTE[step][1];
-              nowEl.style.setProperty('--c', REGIONS[r].color);
-            } else if (beat === ROUTE.length) {
-              label.textContent = 'and picks the next one';
-              nowEl.style.setProperty('--c', '');
+              lines[step].style.setProperty('--c', REGIONS[r].color);
             }
+            if (beat <= ROUTE.length) lines.forEach((li, i) => (li.dataset.s = i < beat ? 'done' : i === beat ? 'now' : ''));
           }
           yaw += (yawTo + 0.16 * Math.sin(clock * 0.35) - yaw) * Math.min(1, dt * 3);
           pitch += (pitchTo - pitch) * Math.min(1, dt * 3);
@@ -386,8 +559,8 @@
           if (!still) requestAnimationFrame(draw);
         }
         if (still) {
-          label.textContent = 'Each part is one part of the system';
-          for (const [id] of ROUTE) glow[INDEX[id]] = 0.5;
+          lines.forEach((li) => (li.dataset.s = 'done'));
+          for (const id of ROUTE) glow[INDEX[id]] = 0.5;
         }
         requestAnimationFrame(draw);
       })();
